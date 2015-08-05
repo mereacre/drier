@@ -7,41 +7,68 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>Bootstrap 101 Template</title>
 
-  <script type="text/javascript">
+    <script>
+      "use strict";
+      // Initialize everything when the window finishes loading
+      window.addEventListener("load", function(event) {
+        var status = document.getElementById("status");
+        var url = document.getElementById("url");
+        var open = document.getElementById("open");
+        var close = document.getElementById("close");
+        var send = document.getElementById("send");
+        var text = document.getElementById("text");
+        var message = document.getElementById("txtreport");
+        var socket;
 
-            if ("WebSocket" in window)
-            {
-               alert("WebSocket is supported by your Browser!");
-               
-               // Let us open a web socket
-               var ws = new WebSocket("ws://localhost:8080");
-        
-               ws.onopen = function()
-               {
-                  // Web Socket is connected, send data using send()
-                  ws.send("Message to send");
-                  alert("Message is sent...");
-               };
-        
-               ws.onmessage = function (evt) 
-               { 
-                  var received_msg = evt.data;
-                  alert("Message is received...");
-               };
-        
-               ws.onclose = function()
-               { 
-                  // websocket is closed.
-                  alert("Connection is closed..."); 
-               };
-            }
-            
-            else
-            {
-               // The browser doesn't support WebSocket
-               alert("WebSocket NOT supported by your Browser!");
-            }
-</script>
+        status.textContent = "Not Connected";
+        url.value = "ws://localhost:8080";
+        close.disabled = true;
+        send.disabled = true;
+
+        // Create a new connection when the Connect button is clicked
+        open.addEventListener("click", function(event) {
+          open.disabled = true;
+          socket = new WebSocket(url.value, "echo-protocol");
+
+          socket.addEventListener("open", function(event) {
+            close.disabled = false;
+            send.disabled = false;
+            status.textContent = "Connected";
+            alert("Connected");
+          });
+
+          // Display messages received from the server
+          socket.addEventListener("message", function(event) {
+            message.textContent = "Server Says: " + event.data;
+          });
+
+          // Display any errors that occur
+          socket.addEventListener("error", function(event) {
+            message.textContent = "Error: " + event;
+          });
+
+          socket.addEventListener("close", function(event) {
+            open.disabled = false;
+            status.textContent = "Not Connected";
+          });
+        });
+
+        // Close the connection when the Disconnect button is clicked
+        close.addEventListener("click", function(event) {
+          close.disabled = true;
+          send.disabled = true;
+          message.textContent = "";
+          socket.close();
+        });
+
+        // Send text to the server when the Send button is clicked
+        send.addEventListener("click", function(event) {
+          socket.send(text.value);
+          text.value = "";
+        });
+      });
+    </script>
+
     <!-- Bootstrap -->
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
@@ -52,6 +79,7 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
   </head>
+
   <body>
     <div class="col-md-12">
     <h2>Grain Drier Recording Page</h2>
@@ -61,7 +89,10 @@
         <p>
           <button type="button" class="btn btn-primary" onclick="startFun();">Start</button>
           <button type="button" class="btn btn-default" onclick="stopFun();">Stop</button>
-          <button type="button" class="btn btn-default" onclick="clearFun();">Clear</button>          
+          <button type="button" class="btn btn-default" onclick="clearFun();">Clear</button>
+  <input id="open" type="button" value="Connect" />&nbsp;
+  <input id="close" type="button" value="Disconnect" /><br />
+  <input id="send" type="button" value="Send" />&nbsp;
         </p>
         <label for="inputgraintype">Grain Type</label>
         <input type="textarea" class="form-control" id="inputgraintype" placeholder="Wheat" onkeypress="onGrainTypeEnter();">
