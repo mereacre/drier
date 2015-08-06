@@ -13,7 +13,9 @@
       window.addEventListener("load", function(event) {
         var start = document.getElementById("startbtn");
         var stop = document.getElementById("stopbtn");
+        var test = document.getElementById("testbtn");
         var clear = document.getElementById("clearbtn");
+        var save = document.getElementById("savebtn");
 
         var inputgrainmass = document.getElementById("inputgrainmass");
         var inputgraintype = document.getElementById("inputgraintype");
@@ -36,7 +38,10 @@
 
         // Display messages received from the server
         socket.addEventListener("message", function(event) {
-          txtreport.textContent = "Server Says: " + event.data;
+          var tstamp = new Date();
+          var timestr = formatTime(tstamp);
+
+          addTextStamp(event.data, timestr);
         });
 
         // Display any errors that occur
@@ -52,16 +57,33 @@
           setServerState(1);
           stop.disabled = false;
           start.disabled = true;
+          test.disabled = true;
+          save.disabled = true;
         });
 
         stop.addEventListener("click", function(event) {
           setServerState(0);
           stop.disabled = true;
           start.disabled = false;
+          test.disabled = false;
+          save.disabled = false;
+        });
+
+        test.addEventListener("click", function(event) {
+          var jsonmsg = setTextVar("test", "1", "Testing Sensor Connection: ");
+          socket.send(jsonmsg);
+
+          stop.disabled = true;
+          start.disabled = true;
+          save.disabled = true;
         });
 
         clear.addEventListener("click", function(event) {
           clearText();
+        });
+
+        save.addEventListener("click", function(event) {
+          saveTextAsFile();
         });
 
         inputgrainmass.addEventListener("keypress", function(event) {
@@ -128,6 +150,40 @@
         });
       });
       
+      function saveTextAsFile()
+      {
+        var textToWrite = txtreport.value;
+        var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
+        var fileNameToSaveAs = new Date().toISOString()+".txt";
+
+        var downloadLink = document.createElement("a");
+        downloadLink.download = fileNameToSaveAs;
+        downloadLink.innerHTML = "Download File";
+        if (window.webkitURL != null)
+        {
+          // Chrome allows the link to be clicked
+          // without actually adding it to the DOM.
+          downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+        }
+        else
+        {
+          // Firefox requires the link to be added to the DOM
+          // before it can be clicked.
+          downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+          downloadLink.onclick = destroyClickedElement;
+          downloadLink.style.display = "none";
+          document.body.appendChild(downloadLink);
+        }
+
+        downloadLink.click();
+      }
+
+      function destroyClickedElement(event)
+      {
+        document.body.removeChild(event.target);
+      }
+
+
       function setTextVar(varname, varvalue, vartext)
       {
         var tstamp = new Date();
@@ -223,8 +279,10 @@
       <div class="col-md-6">
         <p>
           <button id="startbtn" type="button" class="btn btn-primary" enabled>Start recording</button>
-          <button id="stopbtn" type="button" class="btn btn-warning" disabled="disabled">Stop recording</button>
-          <button id="clearbtn" type="button" class="btn btn-success">Clear screen</button>        
+          <button id="stopbtn" type="button" class="btn btn-danger" disabled="disabled">Stop recording</button>
+          <button id="testbtn" type="button" class="btn btn-success" enabled>Test connection</button>
+          <button id="clearbtn" type="button" class="btn btn-success">Clear screen</button>
+          <button id="savebtn" type="button" class="btn btn-success">Save screen</button>
         </p>
         <label for="inputgrainmass">Total Grain Mass</label>
         <input type="number" class="form-control" id="inputgrainmass" placeholder="1000">

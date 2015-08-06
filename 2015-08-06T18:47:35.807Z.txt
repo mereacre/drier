@@ -1,0 +1,9 @@
+2015-08-06T18:47:35.807Z
+inputgrainmass:123123
+inputgraintype:dsfasdfas
+inputinitmoisture:1324132
+inputhotairgates:341234
+inputairvents:5654263
+inputburnertemp:1435
+inputdischargetime:14565
+inputfinalmoisture:654364

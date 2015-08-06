@@ -1,6 +1,23 @@
 #!/usr/bin/env node
 var WebSocketServer = require('websocket').server;
 var http = require('http');
+var fs = require('fs');
+
+var startRec = false;
+var sendTimer;
+var connection;
+
+var inputtime;
+var inputgrainmass; 
+var inputgraintype;
+var inputinitmoisture;
+var inputhotairgates;
+var inputairvents;
+var inputfanvents;
+var inputburnertemp;
+var inputdischargetime;
+var inputfinalmoisture;
+
 
 var server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
@@ -34,19 +51,98 @@ wsServer.on('request', function(request) {
       return;
     }
 
-    var connection = request.accept('realtime-protocol', request.origin);
+    connection = request.accept('realtime-protocol', request.origin);
     console.log((new Date()) + ' Connection accepted.');
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
             console.log('Received Message: ' + message.utf8Data);
-            connection.sendUTF(message.utf8Data);
+            var msgJSON = JSON.parse(message.utf8Data);
+
+            if(msgJSON.start==1) {
+            	inputtime = msgJSON.JSONtime;
+            	sendTimer = setInterval(recursiveTimer,1000);
+            } else if(msgJSON.start==0) {
+            	clearInterval(sendTimer);
+
+            	var outfilename = inputtime+".txt";
+
+            	fs.writeFile(outfilename, inputtime+"\n", function (err) {
+  					if (err) return console.log(err);
+  					console.log('Time: '+inputtime+ ' saved to file '+outfilename);
+				});
+
+            	fs.appendFile(outfilename, "inputgrainmass:"+inputgrainmass+"\n", function (err) {
+  					if (err) return console.log(err);
+  					console.log(inputgrainmass+ ' saved to file '+outfilename);
+				});
+
+            	fs.appendFile(outfilename, "inputgraintype:"+inputgraintype+"\n", function (err) {
+  					if (err) return console.log(err);
+  					console.log(inputgraintype+ ' saved to file '+outfilename);
+				});
+				
+            	fs.appendFile(outfilename, "inputinitmoisture:"+inputinitmoisture+"\n", function (err) {
+  					if (err) return console.log(err);
+  					console.log(inputinitmoisture+ ' saved to file '+outfilename);
+				});
+
+            	fs.appendFile(outfilename, "inputhotairgates:"+inputhotairgates+"\n", function (err) {
+  					if (err) return console.log(err);
+  					console.log(inputhotairgates+ ' saved to file '+outfilename);
+				});
+
+            	fs.appendFile(outfilename, "inputairvents:"+inputairvents+"\n", function (err) {
+  					if (err) return console.log(err);
+  					console.log(inputairvents+ ' saved to file '+outfilename);
+				});
+
+            	fs.appendFile(outfilename, "inputburnertemp:"+inputburnertemp+"\n", function (err) {
+  					if (err) return console.log(err);
+  					console.log(inputburnertemp+ ' saved to file '+outfilename);
+				});
+
+            	fs.appendFile(outfilename, "inputdischargetime:"+inputdischargetime+"\n", function (err) {
+  					if (err) return console.log(err);
+  					console.log(inputdischargetime+ ' saved to file '+outfilename);
+				});
+
+            	fs.appendFile(outfilename, "inputfinalmoisture:"+inputfinalmoisture+"\n", function (err) {
+  					if (err) return console.log(err);
+  					console.log(inputfinalmoisture+ ' saved to file '+outfilename);
+				});
+
+            }
+
+            if(msgJSON.inputgrainmass)
+            	inputgrainmass = msgJSON.inputgrainmass;
+            else if (msgJSON.inputgraintype)
+            	inputgraintype = msgJSON.inputgraintype;	
+            else if (msgJSON.inputinitmoisture)
+            	inputinitmoisture = msgJSON.inputinitmoisture;	
+            else if (msgJSON.inputhotairgates)
+            	inputhotairgates = msgJSON.inputhotairgates;	
+            else if (msgJSON.inputairvents)
+            	inputairvents = msgJSON.inputairvents;	
+            else if (msgJSON.inputfanvents)
+            	inputfanvents = msgJSON.inputfanvents;	
+            else if (msgJSON.inputburnertemp)
+            	inputburnertemp = msgJSON.inputburnertemp;	
+            else if (msgJSON.inputdischargetime)
+            	inputdischargetime = msgJSON.inputdischargetime;	
+            else if (msgJSON.inputfinalmoisture)
+            	inputfinalmoisture = msgJSON.inputfinalmoisture;
         }
-        else if (message.type === 'binary') {
-            console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
-            connection.sendBytes(message.binaryData);
-        }
+//        else if (message.type === 'binary') {
+//            console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
+//            connection.sendBytes(message.binaryData);
+//        }
     });
     connection.on('close', function(reasonCode, description) {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
 });
+
+function recursiveTimer() {
+	console.log("Sending data to client!");
+	connection.sendUTF("Some data telksj");
+}
