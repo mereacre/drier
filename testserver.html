@@ -1,35 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>WebSocket Echo Client</title>
+  <title>Grain Drier</title>
   <meta charset="UTF-8" />
-  <script>
-    "use strict";
-    // Initialize everything when the window finishes loading
-    window.addEventListener("load", function(event) {
-      var status = document.getElementById("status");
-      var url = document.getElementById("url");
-      var open = document.getElementById("open");
-      var close = document.getElementById("close");
-      var send = document.getElementById("send");
-      var text = document.getElementById("text");
-      var message = document.getElementById("message");
+    <script>
+      "use strict";
+
       var socket;
 
-      status.textContent = "Not Connected";
-      url.value = "ws://localhost:8080";
-      close.disabled = true;
-      send.disabled = true;
+      // Initialize everything when the window finishes loading
+      window.addEventListener("load", function(event) {
+        var start = document.getElementById("startbtn");
+        var stop = document.getElementById("stopbtn");
+        var clear = document.getElementById("clearbtn");
+        var message = document.getElementById("txtreport");
 
-      // Create a new connection when the Connect button is clicked
-      open.addEventListener("click", function(event) {
-        open.disabled = true;
-        socket = new WebSocket(url.value, "echo-protocol");
+        socket = new WebSocket("ws://localhost:8080", "echo-protocol");
 
+        // Create a new connection when the Connect button is clicked
         socket.addEventListener("open", function(event) {
-          close.disabled = false;
-          send.disabled = false;
-          status.textContent = "Connected";
+          message.textContent = "["+timeStamp()+"] "+"Connected to PI Hub\n";
+          //addTextStamp("Connected to PI Hub", timest);
         });
 
         // Display messages received from the server
@@ -39,30 +30,79 @@
 
         // Display any errors that occur
         socket.addEventListener("error", function(event) {
-          message.textContent = "Error: " + event;
+          message.textContent = "["+timeStamp()+"] "+"Error connecting to PI Hub "+event;
         });
 
         socket.addEventListener("close", function(event) {
-          open.disabled = false;
-          status.textContent = "Not Connected";
+          addTextStamp("Connection to PI Hub closed", timest);
         });
-      });
 
-      // Close the connection when the Disconnect button is clicked
-      close.addEventListener("click", function(event) {
-        close.disabled = true;
-        send.disabled = true;
-        message.textContent = "";
-        socket.close();
-      });
+        start.addEventListener("click", function(event) {
+          setServerState(1);
+        });
 
-      // Send text to the server when the Send button is clicked
-      send.addEventListener("click", function(event) {
-        socket.send(text.value);
-        text.value = "";
+        stop.addEventListener("click", function(event) {
+          setServerState(0);
+        });
+
+        clear.addEventListener("click", function(event) {
+          clearText();
+        });
+
       });
-    });
-  </script>
+      
+      function setServerState(state)
+      {
+        var timest = timeStamp();
+        var textval = "START"+timest;
+
+        if (state) {
+          addTextStamp("START Recording", timest);
+          socket.send(textval);
+        } else {
+          addTextStamp("STOP Recording", timest);
+          socket.send("STOP");
+        }
+      }
+
+      function clearText()
+      {
+        document.getElementById("txtreport").textContent = "";
+      }
+
+      function addText(textval)
+      {
+        document.getElementById("txtreport").value =document.getElementById("txtreport").value + textval+"\n";
+        scrollList();
+      }
+
+      function addTextStamp(textval, timest)
+      {
+        var fulltext = "["+timest+"] "+textval;
+        addText(fulltext);
+      }
+
+      function stateFunText(state, timest)
+      {
+        if (state)
+          addTextStamp("START Recording", timest);
+        else
+          addTextStamp("STOP Recording", timest);
+      }
+
+      function timeStamp() {
+        var tstamp = new Date();
+        return tstamp.getDate()+':'+(tstamp.getMonth()+1)+':'+tstamp.getFullYear()+'::'+tstamp.getHours()+':'+tstamp.getMinutes()+':'+tstamp.getSeconds();
+      }
+
+      function scrollList() {
+        var txtreportobj = $('#txtreport');
+        if(txtreportobj.length)
+          txtreportobj.scrollTop(txtreportobj[0].scrollHeight - txtreportobj.height());
+        return true;
+      }
+
+    </script>
     <!-- Bootstrap -->
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
@@ -76,25 +116,47 @@
 </head>
 
 <body>
-  Status: <span id="status"></span><br />
-  URL: <input id="url" /><br />
-  <input id="open" type="button" value="Connect" />&nbsp;
-  <input id="close" type="button" value="Disconnect" /><br />
-  <input id="send" type="button" value="Send" />&nbsp;
-  <input id="text" /><br />
-  <span id="message"></span>
+    <div class="col-md-12">
+    <h2>Grain Drier Recording Page</h2>
+    </div>
+    <div class="container-fluid">
+      <div class="col-md-6">
+        <p>
+          <button id="startbtn" type="button" class="btn btn-primary">Start</button>
+          <button id="stopbtn" type="button" class="btn btn-default">Stop</button>
+          <button id="clearbtn" type="button" class="btn btn-default">Clear</button>        
+        </p>
+        <label for="inputgraintype">Grain Type</label>
+        <input type="textarea" class="form-control" id="inputgraintype" placeholder="Wheat" onkeypress="onGrainTypeEnter();">
+
+        <label for="inputinitmoisture">Initial Moisture Content</label>
+        <input type="number" class="form-control" id="inputinitmoisture" placeholder="23">
+
+        <label for="inputhotairgates">Hot Air Gates</label>
+        <input type="number" class="form-control" id="inputhotairgates" placeholder="123">
+
+        <label for="inputairvents">Air Vents</label>
+        <input type="number" class="form-control" id="inputairvents" placeholder="1">
+
+        <label for="inputfanvents">Fan Vents</label>
+        <input type="number" class="form-control" id="inputfanvents" placeholder="2">
+
+        <label for="inputburnertemp">Burner Temperature</label>
+        <input type="number" class="form-control" id="inputburnertemp" placeholder="65">
+
+        <label for="inputdischargetime">Discharge Time</label>
+        <input type="number" class="form-control" id="inputdischargetime" placeholder="15">
+
+        <label for="inputfinalmoisture">Final Moisture Content</label>
+        <input type="number" class="form-control" id="inputfinalmoisture" placeholder="7.1">
+
+      </div>
+      <div class="col-md-6">
+        <textarea class="form-control" id="txtreport" rows="25" readonly></textarea>
+      </div>
+    </div>
 
     <script>
-      function startFun() {
-        stateFun(1);
-        return true;
-      }
-
-      function stopFun() {
-        stateFun(0);
-        return true;
-      }
-
       function clearFun() {
         document.getElementById("txtreport").value = "";
       }
@@ -104,32 +166,13 @@
 
         if (key == 13) {
           document.getElementById("txtreport").value =document.getElementById("txtreport").value + "["+timeStamp()+"] Grain type set to: "+$('#inputgraintype').val()+"\n";
-          var txtreportobj = $('#txtreport');
-          if(txtreportobj.length)
-            txtreportobj.scrollTop(txtreportobj[0].scrollHeight - txtreportobj.height());
-          return true;
         }
         else return false;
-      }
-      function timeStamp() {
-        var tstamp = new Date();
-        return tstamp.getDate()+':'+(tstamp.getMonth()+1)+':'+tstamp.getFullYear()+'::'+tstamp.getHours()+':'+tstamp.getMinutes()+':'+tstamp.getSeconds();
-      }
-
-      function stateFun(state)
-      {
-        if (state) {
-          document.getElementById("txtreport").value =document.getElementById("txtreport").value + "["+timeStamp()+"] START Recording\n";
-        }
-        else {
-          document.getElementById("txtreport").value =document.getElementById("txtreport").value + "["+timeStamp()+"] STOP Recording\n"; 
-        }
-        return true;
       }
     </script>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="jquery-1.11.3.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="bootstrap/js/bootstrap.min.js"></script>  
 </body>

@@ -1,74 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Bootstrap 101 Template</title>
-
+<head>
+  <title>Grain Drier</title>
+  <meta charset="UTF-8" />
     <script>
       "use strict";
+
+      var txtreport;
+      var socket;
+
       // Initialize everything when the window finishes loading
       window.addEventListener("load", function(event) {
-        var status = document.getElementById("status");
-        var url = document.getElementById("url");
-        var open = document.getElementById("open");
-        var close = document.getElementById("close");
-        var send = document.getElementById("send");
-        var text = document.getElementById("text");
-        var message = document.getElementById("txtreport");
-        var socket;
+        var start = document.getElementById("startbtn");
+        var stop = document.getElementById("stopbtn");
+        var clear = document.getElementById("clearbtn");
 
-        status.textContent = "Not Connected";
-        url.value = "ws://localhost:8080";
-        close.disabled = true;
-        send.disabled = true;
+        var inputgrainmass = document.getElementById("inputgrainmass");
+        var inputgraintype = document.getElementById("inputgraintype");
+        var inputinitmoisture = document.getElementById("inputinitmoisture");
+        var inputhotairgates = document.getElementById("inputhotairgates");
+        var inputairvents = document.getElementById("inputairvents");
+        var inputfanvents = document.getElementById("inputfanvents");
+        var inputburnertemp = document.getElementById("inputburnertemp");
+        var inputdischargetime = document.getElementById("inputdischargetime");
+        var inputfinalmoisture = document.getElementById("inputfinalmoisture");
+
+        txtreport = document.getElementById("txtreport");
+
+        socket = new WebSocket("ws://localhost:8080", "realtime-protocol");
 
         // Create a new connection when the Connect button is clicked
-        open.addEventListener("click", function(event) {
-          open.disabled = true;
-          socket = new WebSocket(url.value, "echo-protocol");
-
-          socket.addEventListener("open", function(event) {
-            close.disabled = false;
-            send.disabled = false;
-            status.textContent = "Connected";
-            alert("Connected");
-          });
-
-          // Display messages received from the server
-          socket.addEventListener("message", function(event) {
-            message.textContent = "Server Says: " + event.data;
-          });
-
-          // Display any errors that occur
-          socket.addEventListener("error", function(event) {
-            message.textContent = "Error: " + event;
-          });
-
-          socket.addEventListener("close", function(event) {
-            open.disabled = false;
-            status.textContent = "Not Connected";
-          });
+        socket.addEventListener("open", function(event) {
+          txtreport.textContent = "["+timeStamp()+"] "+"Connected to PI Hub\n";
         });
 
-        // Close the connection when the Disconnect button is clicked
-        close.addEventListener("click", function(event) {
-          close.disabled = true;
-          send.disabled = true;
-          message.textContent = "";
-          socket.close();
+        // Display messages received from the server
+        socket.addEventListener("message", function(event) {
+          txtreport.textContent = "Server Says: " + event.data;
         });
 
-        // Send text to the server when the Send button is clicked
-        send.addEventListener("click", function(event) {
-          socket.send(text.value);
-          text.value = "";
+        // Display any errors that occur
+        socket.addEventListener("error", function(event) {
+          txtreport.textContent = "["+timeStamp()+"] "+"Error connecting to PI Hub "+event;
+        });
+
+        socket.addEventListener("close", function(event) {
+          addTextStamp("Connection to PI Hub closed", timest);
+        });
+
+        start.addEventListener("click", function(event) {
+          setServerState(1);
+          stop.disabled = false;
+          start.disabled = true;
+        });
+
+        stop.addEventListener("click", function(event) {
+          setServerState(0);
+          stop.disabled = true;
+          start.disabled = false;
+        });
+
+        clear.addEventListener("click", function(event) {
+          clearText();
+        });
+
+        inputgrainmass.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputgrainmass", inputgrainmass.value, "Set Total Grain Mass: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputgraintype.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputgraintype", inputgraintype.value, "Set Grain Type: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputinitmoisture.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputinitmoisture", inputinitmoisture.value, "Set Initial Moisture: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputhotairgates.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputhotairgates", inputhotairgates.value, "Set Hot Air Gates: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputairvents.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputairvents", inputairvents.value, "Set Air Vents: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputfanvents.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputfanvents", inputfanvents.value, "Set Fan Vents: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputburnertemp.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputburnertemp", inputburnertemp.value, "Set Burner Temperature: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputdischargetime.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputdischargetime", inputdischargetime.value, "Set Discharge Time: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputfinalmoisture.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputfinalmoisture", inputfinalmoisture.value, "Set Final Moisture: ");
+            socket.send(jsonmsg);
+          }
         });
       });
-    </script>
+      
+      function setTextVar(varname, varvalue, vartext)
+      {
+        var tstamp = new Date();
+        var timestr = formatTime(tstamp);
+        var jsonmsg = getJSONTimeheader(tstamp)+'"'+varname+'":'+'"'+varvalue+'"}';
 
+        addTextStamp(vartext+varvalue, timestr);
+
+        return jsonmsg;
+      }
+
+      function setServerState(state)
+      {
+        var tstamp = new Date();
+        var timestr = formatTime(tstamp);
+        var jsonmsg = getJSONTimeheader(tstamp)+'"start":';
+
+        if (state) {
+          addTextStamp("START Recording", timestr);
+          jsonmsg = jsonmsg + '"1"}';
+        } else {
+          addTextStamp("STOP Recording", timestr);
+          jsonmsg = jsonmsg + '"0"}';
+        }
+
+        socket.send(jsonmsg);
+      }
+
+      function getJSONTimeheader(tstamp)
+      {
+        return '{ "JSONtime":'+'"'+tstamp.toJSON()+'", ';
+      }
+
+      function clearText()
+      {
+        txtreport.value = "";
+      }
+
+      function addText(textval)
+      {
+        txtreport.value = txtreport.value + textval+"\n";
+        scrollList();
+      }
+
+      function addTextStamp(textval, timest)
+      {
+        var fulltext = "["+timest+"] "+textval;
+        addText(fulltext);
+      }
+
+      function stateFunText(state, timest)
+      {
+        if (state)
+          addTextStamp("START Recording", timest);
+        else
+          addTextStamp("STOP Recording", timest);
+      }
+
+      function timeStamp() {
+        var tstamp = new Date();
+        return tstamp.getDate()+':'+(tstamp.getMonth()+1)+':'+tstamp.getFullYear()+'::'+tstamp.getHours()+':'+tstamp.getMinutes()+':'+tstamp.getSeconds();
+      }
+
+      function formatTime(tstamp)
+      {
+        return tstamp.getDate()+':'+(tstamp.getMonth()+1)+':'+tstamp.getFullYear()+'::'+tstamp.getHours()+':'+tstamp.getMinutes()+':'+tstamp.getSeconds();
+
+      }
+
+      function scrollList() {
+        if(txtreport.length)
+          txtreport.scrollTop(txtreport[0].scrollHeight - txtreport.height());
+      }
+
+    </script>
     <!-- Bootstrap -->
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
@@ -78,24 +212,25 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-  </head>
 
-  <body>
+</head>
+
+<body>
     <div class="col-md-12">
     <h2>Grain Drier Recording Page</h2>
     </div>
     <div class="container-fluid">
       <div class="col-md-6">
         <p>
-          <button type="button" class="btn btn-primary" onclick="startFun();">Start</button>
-          <button type="button" class="btn btn-default" onclick="stopFun();">Stop</button>
-          <button type="button" class="btn btn-default" onclick="clearFun();">Clear</button>
-  <input id="open" type="button" value="Connect" />&nbsp;
-  <input id="close" type="button" value="Disconnect" /><br />
-  <input id="send" type="button" value="Send" />&nbsp;
+          <button id="startbtn" type="button" class="btn btn-primary" enabled>Start recording</button>
+          <button id="stopbtn" type="button" class="btn btn-warning" disabled="disabled">Stop recording</button>
+          <button id="clearbtn" type="button" class="btn btn-success">Clear screen</button>        
         </p>
+        <label for="inputgrainmass">Total Grain Mass</label>
+        <input type="number" class="form-control" id="inputgrainmass" placeholder="1000">
+
         <label for="inputgraintype">Grain Type</label>
-        <input type="textarea" class="form-control" id="inputgraintype" placeholder="Wheat" onkeypress="onGrainTypeEnter();">
+        <input type="textarea" class="form-control" id="inputgraintype" placeholder="Wheat">
 
         <label for="inputinitmoisture">Initial Moisture Content</label>
         <input type="number" class="form-control" id="inputinitmoisture" placeholder="23">
@@ -120,57 +255,24 @@
 
       </div>
       <div class="col-md-6">
-        <textarea class="form-control" id="txtreport" rows="25" readonly></textarea>
+        <textarea class="form-control" id="txtreport" rows="28" readonly></textarea>
       </div>
     </div>
 
     <script>
-      function startFun() {
-        stateFun(1);
-        return true;
-      }
-
-      function stopFun() {
-        stateFun(0);
-        return true;
-      }
-
-      function clearFun() {
-        document.getElementById("txtreport").value = "";
-      }
-
       function onGrainTypeEnter() {
         var key = window.event.keyCode;
 
         if (key == 13) {
           document.getElementById("txtreport").value =document.getElementById("txtreport").value + "["+timeStamp()+"] Grain type set to: "+$('#inputgraintype').val()+"\n";
-          var txtreportobj = $('#txtreport');
-          if(txtreportobj.length)
-            txtreportobj.scrollTop(txtreportobj[0].scrollHeight - txtreportobj.height());
-          return true;
         }
         else return false;
-      }
-      function timeStamp() {
-        var tstamp = new Date();
-        return tstamp.getDate()+':'+(tstamp.getMonth()+1)+':'+tstamp.getFullYear()+'::'+tstamp.getHours()+':'+tstamp.getMinutes()+':'+tstamp.getSeconds();
-      }
-
-      function stateFun(state)
-      {
-        if (state) {
-          document.getElementById("txtreport").value =document.getElementById("txtreport").value + "["+timeStamp()+"] START Recording\n";
-        }
-        else {
-          document.getElementById("txtreport").value =document.getElementById("txtreport").value + "["+timeStamp()+"] STOP Recording\n"; 
-        }
-        return true;
       }
     </script>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="jquery-1.11.3.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="bootstrap/js/bootstrap.min.js"></script>
-  </body>
+    <script src="bootstrap/js/bootstrap.min.js"></script>  
+</body>
 </html>
