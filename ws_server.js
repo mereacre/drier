@@ -3,7 +3,7 @@ var WebSocketServer = require('websocket').server;
 var http = require('http');
 var fs = require('fs');
 
-var startRec = false;
+var messageArr = null;
 var sendTimer;
 var connection;
 
@@ -60,8 +60,11 @@ wsServer.on('request', function(request) {
 
             if(msgJSON.start==1) {
             	inputtime = msgJSON.JSONtime;
+            	startSensors(1);
+
             	sendTimer = setInterval(recursiveTimer,1000);
             } else if(msgJSON.start==0) {
+				startSensors(0);            	
             	clearInterval(sendTimer);
 
             	var outfilename = inputtime+".txt";
@@ -111,6 +114,12 @@ wsServer.on('request', function(request) {
   					console.log(inputfinalmoisture+ ' saved to file '+outfilename);
 				});
 
+            	fs.appendFile(outfilename, messageArr+"\n", function (err) {
+  					if (err) return console.log(err);
+  					console.log('data saved to file '+outfilename);
+  					messageArr = null;
+				});
+
             }
 
             if(msgJSON.inputgrainmass)
@@ -131,18 +140,28 @@ wsServer.on('request', function(request) {
             	inputdischargetime = msgJSON.inputdischargetime;	
             else if (msgJSON.inputfinalmoisture)
             	inputfinalmoisture = msgJSON.inputfinalmoisture;
+
+            if(msgJSON.test==1) {
+            	testSensors();
+            }
         }
-//        else if (message.type === 'binary') {
-//            console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
-//            connection.sendBytes(message.binaryData);
-//        }
     });
-    connection.on('close', function(reasonCode, description) {
-        console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
-    });
+
+	connection.on('close', function(reasonCode, description) {
+		console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+	});
 });
 
 function recursiveTimer() {
 	console.log("Sending data to client!");
+	messageArr = messageArr + "Some data telksj"+",";
 	connection.sendUTF("Some data telksj");
+}
+
+function startSensors(state) {
+
+}
+
+function testSensors() {
+
 }

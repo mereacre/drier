@@ -1,0 +1,10 @@
+2015-08-06T19:04:07.137Z
+inputgrainmass:112312
+inputgraintype:fasdfas
+inputinitmoisture:234124
+inputhotairgates:213412
+inputairvents:12341324
+inputburnertemp:3241234
+inputdischargetime:23423141
+inputfinalmoisture:1234124
+nullSome data telksj,Some data telksj,Some data telksj,Some data telksj,Some data telksj,Some data telksj,Some data telksj,Some data telksj,Some data telksj,Some data telksj,Some data telksj,
