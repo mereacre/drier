@@ -29,11 +29,12 @@
 
         txtreport = document.getElementById("txtreport");
 
-        socket = new WebSocket("ws://localhost:8080", "realtime-protocol");
+        socket = new WebSocket("ws://192.168.3.12:8080", "realtime-protocol");
 
         // Create a new connection when the Connect button is clicked
         socket.addEventListener("open", function(event) {
           txtreport.textContent = "["+timeStamp()+"] "+"Connected to PI Hub\n";
+          txtreport.scrollTop = txtreport.scrollHeight;
         });
 
         // Display messages received from the server
@@ -42,15 +43,19 @@
           var timestr = formatTime(tstamp);
 
           addTextStamp(event.data, timestr);
+          scrollList();
+          txtreport.scrollTop = txtreport.scrollHeight;
         });
 
         // Display any errors that occur
         socket.addEventListener("error", function(event) {
-          txtreport.textContent = "["+timeStamp()+"] "+"Error connecting to PI Hub "+event;
+          txtreport.textContent = "["+timeStamp()+"] "+"Error connecting to PI Hub "+event+"\n";
+          txtreport.scrollTop = txtreport.scrollHeight;
         });
 
         socket.addEventListener("close", function(event) {
           addTextStamp("Connection to PI Hub closed", timest);
+          txtreport.scrollTop = txtreport.scrollHeight;
         });
 
         start.addEventListener("click", function(event) {
@@ -63,6 +68,7 @@
 
         stop.addEventListener("click", function(event) {
           setServerState(0);
+
           stop.disabled = true;
           start.disabled = false;
           test.disabled = false;
@@ -73,9 +79,6 @@
           var jsonmsg = setTextVar("test", "1", "Testing Sensor Connection: ");
           socket.send(jsonmsg);
 
-          stop.disabled = true;
-          start.disabled = true;
-          save.disabled = true;
         });
 
         clear.addEventListener("click", function(event) {
@@ -256,6 +259,8 @@
       function scrollList() {
         if(txtreport.length)
           txtreport.scrollTop(txtreport[0].scrollHeight - txtreport.height());
+
+      	txtreport.scrollTop = txtreport.scrollHeight;
       }
 
     </script>

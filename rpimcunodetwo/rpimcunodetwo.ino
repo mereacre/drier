@@ -33,27 +33,34 @@ void loop()
   //delay(SENSOR_READ_FREQ);
   //if (gStartRead)
   //  takeSensorReading();
-  
-  tmpCnt = 0;
-  if (Serial.available()) {
-      
-      if (valSerial>=1 && valSerial <= SENSOR_COUNT) {
-        curID = valSerial;
-        while(Serial.available() && tmpCnt<2) {
-          valSerial = Serial.read();
-          gSensorData[curID][tmpCnt] = valSerial;
-          tmpCnt++;
-        }
-        if(tmpCnt>1) 
-          gSensorDataState[valSerial] = 1;
-      }    
-  }
-  
 }
+
+//void serialEvent() {
+//  while (Serial.available()) {
+//    
+//  }
+//}
 
 void ReadSensor(byte idx)
 {
     Serial.write(idx);
+  
+    //tmpCnt = 0;
+    //while(!Serial.available() && tmpCnt<30000) tmpCnt++;
+    //tmpCnt = 0;
+    
+    tmpCnt = 0;
+    if (Serial.available()) {
+      valSerial = Serial.read();
+      if (valSerial>=1 && valSerial <= SENSOR_COUNT) {
+        curID = valSerial;
+        while(Serial.available() && tmpCnt<2) {
+          gSensorData[curID][tmpCnt] = Serial.read();
+          tmpCnt++;
+        }
+        gSensorDataState[valSerial] = 1;
+      }
+    }  
 }
 
 void takeSensorReading()
