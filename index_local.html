@@ -3,11 +3,58 @@
 <head>
   <title>Grain Drier</title>
   <meta charset="UTF-8" />
+      <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <link href="examples.css" rel="stylesheet" type="text/css">  
+    <!--
+    <script src="jquery-1.11.3.min.js"></script>
+    <script language="javascript" type="text/javascript" src="jquery.flot.js"></script>
+    -->
+
+    <script type="text/javascript" src="dependencies/d3.v3.min.js"></script>
+    <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+    <script>if(typeof window.Int16Array !== 'function')document.write("<scri"+"pt src='dependencies/typedarray.js'></scr"+"ipt>");</script>
+    <script type="text/javascript" src="plotly.min.js"></script>
+
     <script>
       "use strict";
 
       var txtreport;
       var socket;
+      var sensorplot;
+
+      var xArray = [];
+      var ySensorTemp1 = [];
+      var ySensorHumid1 = [];
+
+      var ySensorTemp2 = [];
+      var ySensorHumid2 = [];
+
+      var ySensorTemp3 = [];
+      var ySensorHumid3 = [];
+
+      var ySensorTemp4 = [];
+      var ySensorHumid4 = [];
+
+      var ySensorTemp5 = [];
+      var ySensorHumid5 = [];
+
+      var ySensorTemp6 = [];
+      var ySensorHumid6 = [];
+
+      var ySensorTemp7 = [];
+      var ySensorHumid7 = [];
+
+      var ySensorTemp8 = [];
+      var ySensorHumid8 = [];
+
+      var ySensorTemp9 = [];
+      var ySensorHumid9 = [];
+
+      var currx = 0;
+      var stepx = 0.1;
+      var currTempSens = [0,0,0,0,0,0,0,0,0];
+      var currHumidSens = [0,0,0,0,0,0,0,0,0];
+      var numPts = 100;
 
       // Initialize everything when the window finishes loading
       window.addEventListener("load", function(event) {
@@ -28,8 +75,9 @@
         var inputfinalmoisture = document.getElementById("inputfinalmoisture");
 
         txtreport = document.getElementById("txtreport");
+        sensorplot = document.getElementById('sensorplot');
 
-        socket = new WebSocket("ws://192.168.3.12:8080", "realtime-protocol");
+        socket = new WebSocket("ws://localhost:8080", "realtime-protocol");
 
         // Create a new connection when the Connect button is clicked
         socket.addEventListener("open", function(event) {
@@ -45,6 +93,93 @@
           addTextStamp(event.data, timestr);
           scrollList();
           txtreport.scrollTop = txtreport.scrollHeight;
+
+          var idx = event.data.indexOf("Sensor ["), idxb;
+          if (idx>=0) {
+            var strtmp = event.data.substring(idx,event.data.length);
+            var beg = strtmp.indexOf("[");
+            var end = strtmp.indexOf("]");
+            var strtmp2 = strtmp.substring(beg+1,end);
+            var sensidx = parseInt(strtmp2);
+
+            idx = strtmp.indexOf(":")
+            strtmp2 = strtmp.substring(idx+2,strtmp.length);
+            var val = parseFloat(strtmp2);
+
+            if(sensidx>=1 && sensidx<=9) {
+              sensidx --;
+              currTempSens[sensidx] = val;
+            }
+            else if(sensidx>=10 && sensidx<=18) {
+              sensidx -=10;
+              currHumidSens[sensidx] = val;
+            }
+            else return;
+
+            //console.log(strtmp2);
+
+            xArray.shift();
+            xArray.push(currx);
+
+            ySensorTemp1.shift();
+            ySensorTemp1.push(currTempSens[0]);
+
+            ySensorHumid1.shift();
+            ySensorHumid1.push(currHumidSens[0]);
+
+            ySensorTemp2.shift();
+            ySensorTemp2.push(currTempSens[1]);
+
+            ySensorHumid2.shift();
+            ySensorHumid2.push(currHumidSens[1]);
+
+            ySensorTemp3.shift();
+            ySensorTemp3.push(currTempSens[2]);
+
+            ySensorHumid3.shift();
+            ySensorHumid3.push(currHumidSens[2]);
+
+            ySensorTemp4.shift();
+            ySensorTemp4.push(currTempSens[3]);
+
+            ySensorHumid4.shift();
+            ySensorHumid4.push(currHumidSens[3]);
+
+            ySensorTemp5.shift();
+            ySensorTemp5.push(currTempSens[4]);
+
+            ySensorHumid5.shift();
+            ySensorHumid5.push(currHumidSens[4]);
+
+            ySensorTemp6.shift();
+            ySensorTemp6.push(currTempSens[5]);
+
+            ySensorHumid6.shift();
+            ySensorHumid6.push(currHumidSens[5]);
+
+            ySensorTemp7.shift();
+            ySensorTemp7.push(currTempSens[6]);
+
+            ySensorHumid7.shift();
+            ySensorHumid7.push(currHumidSens[6]);
+
+            ySensorTemp8.shift();
+            ySensorTemp8.push(currTempSens[7]);
+
+            ySensorHumid8.shift();
+            ySensorHumid8.push(currHumidSens[7]);
+
+            ySensorTemp9.shift();
+            ySensorTemp9.push(currTempSens[8]);
+
+            ySensorHumid9.shift();
+            ySensorHumid9.push(currHumidSens[8]);
+
+            Plotly.redraw(sensorplot);
+
+            currx += stepx;
+          }
+
         });
 
         // Display any errors that occur
@@ -54,7 +189,7 @@
         });
 
         socket.addEventListener("close", function(event) {
-          addTextStamp("Connection to PI Hub closed", timest);
+          addTextStamp("Connection to PI Hub closed", timeStamp());
           txtreport.scrollTop = txtreport.scrollHeight;
         });
 
@@ -79,6 +214,8 @@
           var jsonmsg = setTextVar("test", "1", "Testing Sensor Connection: ");
           socket.send(jsonmsg);
 
+          //Plotly.redraw(sensorplot);
+          //Plotly.plot(sensorplot, data, layout);
         });
 
         clear.addEventListener("click", function(event) {
@@ -151,6 +288,85 @@
             socket.send(jsonmsg);
           }
         });
+
+
+
+        var data = [
+            {x: xArray, y: ySensorTemp1, name: 'T1'},
+            {x: xArray, y: ySensorHumid1, name: 'H1', yaxis: 'y2'},
+            {x: xArray, y: ySensorTemp2, name: 'T2', xaxis: 'x2', yaxis: 'y3'},
+            {x: xArray, y: ySensorHumid2, name: 'H2', xaxis: 'x2', yaxis: 'y4'},
+            {x: xArray, y: ySensorTemp3, name: 'T3', xaxis: 'x3', yaxis: 'y5'},
+            {x: xArray, y: ySensorHumid3, name: 'H3', xaxis: 'x3', yaxis: 'y6'},
+            {x: xArray, y: ySensorTemp4, name: 'T4', xaxis: 'x4', yaxis: 'y7'},
+            {x: xArray, y: ySensorHumid4, name: 'H4', xaxis: 'x4', yaxis: 'y8'},
+            {x: xArray, y: ySensorTemp4, name: 'T5', xaxis: 'x5', yaxis: 'y9'},
+            {x: xArray, y: ySensorHumid4, name: 'H5', xaxis: 'x5', yaxis: 'y10'},
+            {x: xArray, y: ySensorTemp4, name: 'T6', xaxis: 'x6', yaxis: 'y11'},
+            {x: xArray, y: ySensorHumid4, name: 'H6', xaxis: 'x6', yaxis: 'y12'},
+            {x: xArray, y: ySensorTemp4, name: 'T7', xaxis: 'x7', yaxis: 'y13'},
+            {x: xArray, y: ySensorHumid4, name: 'H7', xaxis: 'x7', yaxis: 'y14'},
+            {x: xArray, y: ySensorTemp4, name: 'T8', xaxis: 'x8', yaxis: 'y15'},
+            {x: xArray, y: ySensorHumid4, name: 'H8', xaxis: 'x8', yaxis: 'y16'},
+            {x: xArray, y: ySensorTemp4, name: 'T9', xaxis: 'x9', yaxis: 'y17'},
+            {x: xArray, y: ySensorHumid4, name: 'H9', xaxis: 'x9', yaxis: 'y18'}
+        ];
+
+        var layout = {
+            xaxis: {title: 'Time (s)'},
+            yaxis: {title: 'T1 (C)', domain: [0, 0.09]},
+            yaxis2: {title: 'H1 (%)', domain: [0, 0.09], side: "right"},
+            xaxis2: {title: 'Time (s)', anchor: 'y3'},
+            yaxis3: {title: 'T2 (C)', domain: [0.1, 0.19]},
+            yaxis4: {title: 'H2 (%)', domain: [0.1, 0.19], side: "right"},
+            xaxis3: {title: 'Time (s)', anchor: 'y5'},
+            yaxis5: {title: 'T3 (C)', domain: [0.2, 0.29]},
+            yaxis6: {title: 'H3 (%)', domain: [0.2, 0.29], side: "right"},
+            xaxis4: {title: 'Time (s)', anchor: 'y7'},
+            yaxis7: {title: 'T4 (C)', domain: [0.3, 0.39]},
+            yaxis8: {title: 'H4 (%)', domain: [0.3, 0.39], side: "right"},
+            xaxis5: {title: 'Time (s)', anchor: 'y9'},
+            yaxis9: {title: 'T5 (C)', domain: [0.4, 0.49]},
+            yaxis10: {title: 'H5 (%)', domain: [0.4, 0.49], side: "right"},
+            xaxis6: {title: 'Time (s)', anchor: 'y11'},
+            yaxis11: {title: 'T6 (C)', domain: [0.5, 0.59]},
+            yaxis12: {title: 'H6 (%)', domain: [0.5, 0.59], side: "right"},
+            xaxis7: {title: 'Time (s)', anchor: 'y13'},
+            yaxis13: {title: 'T7 (C)', domain: [0.6, 0.69]},
+            yaxis14: {title: 'H7 (%)', domain: [0.6, 0.69], side: "right"},
+            xaxis8: {title: 'Time (s)', anchor: 'y15'},
+            yaxis15: {title: 'T8 (C)', domain: [0.7, 0.79]},
+            yaxis16: {title: 'H8 (%)', domain: [0.7, 0.79], side: "right"},
+            xaxis9: {title: 'Time (s)', anchor: 'y17'},
+            yaxis17: {title: 'T9 (C)', domain: [0.8, 0.99]},
+            yaxis18: {title: 'H9 (%)', domain: [0.8, 0.99], side: "right"}
+        };
+
+        for(var i = 0; i < numPts; i++) {
+            xArray.push(i * stepx);
+            ySensorTemp1.push(0);
+            ySensorTemp2.push(0);
+            ySensorTemp3.push(0);
+            ySensorTemp4.push(0);
+            ySensorTemp5.push(0);
+            ySensorTemp6.push(0);
+            ySensorTemp7.push(0);
+            ySensorTemp8.push(0);
+            ySensorTemp9.push(0);
+            ySensorHumid1.push(0);
+            ySensorHumid2.push(0);
+            ySensorHumid3.push(0);
+            ySensorHumid4.push(0);
+            ySensorHumid5.push(0);
+            ySensorHumid6.push(0);
+            ySensorHumid7.push(0);
+            ySensorHumid8.push(0);
+            ySensorHumid9.push(0);
+        }
+
+        currx = (numPts-1) * stepx;
+        Plotly.plot(sensorplot, data, layout);
+
       });
       
       function saveTextAsFile()
@@ -264,6 +480,7 @@
       }
 
     </script>
+
     <!-- Bootstrap -->
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
@@ -320,8 +537,10 @@
       <div class="col-md-6">
         <textarea class="form-control" id="txtreport" rows="28" readonly></textarea>
       </div>
+      <div class="col-md-12">
+        <div id="sensorplot" style="width:1000px;height:2000px;"></div>
+      </div>
     </div>
-
     <script>
       function onGrainTypeEnter() {
         var key = window.event.keyCode;
@@ -333,8 +552,6 @@
       }
     </script>
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="jquery-1.11.3.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="bootstrap/js/bootstrap.min.js"></script>  
 </body>

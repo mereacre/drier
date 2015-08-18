@@ -27,10 +27,6 @@ var TEST_COMMAND = 0x00;
 var TEST_SENSOR_COMMAND = 0xFD;
 var sensorIdx = 1;
 
-var i2c = require('i2c');
-var address = 0x04;
-var wire = new i2c(address,{device:'/dev/i2c-1'});
-
 var server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
     response.writeHead(404);
@@ -73,28 +69,15 @@ wsServer.on('request', function(request) {
 
             if(msgJSON.start==1) {
             	inputtime = msgJSON.JSONtime;
+              sendTimer = setInterval(recursiveTimer,1000);
             	//startSensors(1);
 
-		wire.readBytes(START_DATA_COMMAND, 1, function(err, res) {
-			if(res.length==1 && res[0]==START_DATA_COMMAND)
-            			sendTimer = setInterval(recursiveTimer,1000);
-			else
-				connection.sendUTF("Could not start sensor reading");
-		});
             } else if(msgJSON.start==0) {
-		//startSensors(0);
-                wire.readBytes(STOP_DATA_COMMAND, 1, function(err, res) {
-                        if(res.length==1 && res[0]==STOP_DATA_COMMAND) {
-                                clearInterval(sendTimer);
-				sensorIdx = 1;
-			}
-                        else
-                                connection.sendUTF("Could not stop sensor reading");
-                });
 
-            	var outfilename = inputtime+".txt";
+            clearInterval(sendTimer);
+            var outfilename = inputtime+".txt";
 
-            	fs.writeFile(outfilename, inputtime+"\n", function (err) {
+            fs.writeFile(outfilename, inputtime+"\n", function (err) {
   					if (err) return console.log(err);
   					else console.log('Time: '+inputtime+ ' saved to file '+outfilename);
 				});
@@ -139,14 +122,14 @@ wsServer.on('request', function(request) {
   					else console.log(inputfinalmoisture+ ' saved to file '+outfilename);
 				});
 
-		fs.appendFile(outfilename, dataSensors, function (err) {
-                                        if (err) {
-						 return console.log(err);
-					} else {
-                                        	console.log('Sensor data saved to file '+outfilename);
-						dataSensors = null;
-					}
-                                });
+		    fs.appendFile(outfilename, dataSensors, function (err) {
+          if (err) {
+            return console.log(err);
+          } else {
+            console.log('Sensor data saved to file '+outfilename);
+            dataSensors = null;
+          }
+        });
 
             }
 
@@ -186,74 +169,21 @@ function recursiveTimer() {
 	if (sensorIdx>SENSOR_COUNT)
 		sensorIdx = 1;		
 
-	wire.readBytes(sensorIdx, DATA_SIZE+1, function(err, res) {
-        	// result contains a buffer of bytes
-        	if(err) {
-                	console.log("RPi node not responding: "+err);
-                	//connection.sendUTF("RPi node not responding: "+err);
-        	}
-        	else {
-                	if (res.length==DATA_SIZE+1 && res[0]==sensorIdx) {
-				if (res[1]!=0xFF || res[2]!=0xFF) {
-					var tmp = (res[1]<<8);
-					tmp=tmp|res[2];
-					tmp = tmp/10;
-					console.log("Sensor ["+sensorIdx+"]: "+tmp);
-					connection.sendUTF("Sensor ["+sensorIdx+"]: "+tmp);
-					dataSensors = dataSensors+sensorIdx+", "+tmp+"\n";
-				} else if(res[1]==0xFF && res[2]==0xFF) {
-					console.log("Sensor ["+sensorIdx+"] not connected or faulty!!!");
-                                        connection.sendUTF("Sensor ["+sensorIdx+"] not connected or faulty!!!");
-				}
-                	} else if(res.length==DATA_SIZE+1 && res[0]==0xFF) {
-                        	console.log("No new sensor: "+sensorIdx+" data");
-                	} else if(res.length!=DATA_SIZE+1){
-                        	console.log("Error RPi node (wrong length)");
-                        	connection.sendUTF("Error RPi node (wrong length)");
-                	}
+  var tmp = Math.random() * 100;
+  
+  console.log("Sensor ["+sensorIdx+"]: "+tmp);
+  connection.sendUTF("Sensor ["+sensorIdx+"]: "+tmp);
+  dataSensors = dataSensors+sensorIdx+", "+tmp+"\n";
 
-			sensorIdx = sensorIdx + 1;
-        	} 
-	});
-	
+  sensorIdx = sensorIdx + 1;
+
 }
-
-//function startSensors(state) {
-//
-//}
 
 function testSensors() {
 	console.log("Testing boards");
 	connection.sendUTF("RPi OK!");
-
-	wire.readBytes(TEST_COMMAND, 1, function(err, res) {
-  		// result contains a buffer of bytes
-        	if(err) {
-                	console.log("Error RPi node:"+err);
-			connection.sendUTF("Error RPi node:"+err);
-		}
-        	else {
-			if (res.length!=1) {
-				console.log("Error RPi node (length not 1)");
-                		connection.sendUTF("Error RPi node (length not 1)");
-			} else if(res.length==1 && res[0]==0x01) {
-                        	console.log("RPi node OK!");
-                        	connection.sendUTF("RPi node OK!");
-				setTimeout(function () {
-					wire.readBytes(TEST_SENSOR_COMMAND, 1, function(err, res) {
-                                        	if(res.length==1 && res[0]==0x01) {
-                                                	console.log("Sensor board OK && Radio OK!");
-                                                	connection.sendUTF("Sensor board OK && Radio OK!");
-                                        	} else {
-                                                	console.log("Sensor board faulty or Radio not working!");
-                                                	connection.sendUTF("Sensor board faulty or Radio not working!");
-                                        	}
-					});
-				}, 1000);
-			} else {
-                        	console.log("Error RPi node (wrong data)");
-                        	connection.sendUTF("Error RPi node (wrong data)");
-			}
-        	}
-	});
+  console.log("RPi node OK!");
+  connection.sendUTF("RPi node OK!");
+  console.log("Sensor board OK && Radio OK!");
+  connection.sendUTF("Sensor board OK && Radio OK!");
 }

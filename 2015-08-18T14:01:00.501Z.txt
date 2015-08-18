@@ -1,0 +1,15 @@
+2015-08-18T14:01:00.501Z
+inputgraintype:undefined
+inputhotairgates:undefined
+inputairvents:undefined
+inputinitmoisture:undefined
+inputburnertemp:undefined
+inputdischargetime:undefined
+inputfinalmoisture:undefined
+6, 10
+7, 10
+8, 10
+9, 10
+10, 10
+11, 10
+12, 10
