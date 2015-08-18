@@ -45,6 +45,18 @@ void loop()
 //  }
 //}
 
+void sensorTestRead()
+{
+  tmpCnt = 0;
+  Serial.write(TEST_COMMAND);
+  while(!Serial.available() && tmpCnt<10000) {
+  delay(100);
+  if (Serial.available()) {
+    if(Serial.read()==TEST_COMMAND)
+      gSensorTestRead = 1;  
+  }    
+}
+
 void ReadSensor(byte idx)
 {
     Serial.write(idx);
@@ -89,12 +101,8 @@ void sendData()
       snd[0] = 0x01;
       Wire.write(snd,1);
       
-      Serial.write(TEST_COMMAND);
-      delay(100);
-      if (Serial.available()) {
-        if(Serial.read()==TEST_COMMAND)
-          gSensorTestRead = 1;  
-      }  
+      gTimerSensor.after(50, sensorTestRead);
+      
     } if (cmd==TEST_SENSOR_COMMAND) {
       if (gSensorTestRead) {
         snd[0] = 0x01;

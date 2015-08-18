@@ -1,0 +1,73 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Flot Examples: Basic Usage</title>
+	<link href="examples.css" rel="stylesheet" type="text/css">
+	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../../excanvas.min.js"></script><![endif]-->
+	<script language="javascript" type="text/javascript" src="jquery.js"></script>
+	<script language="javascript" type="text/javascript" src="jquery.flot.js"></script>
+	<script type="text/javascript">
+
+
+
+	var QueryString = function () {
+  // This function is anonymous, is executed immediately and 
+  // the return value is assigned to QueryString!
+  var query_string = {};
+  var query = window.location.search.substring(1);
+  var vars = query.split("&");
+  for (var i=0;i<vars.length;i++) {
+    var pair = vars[i].split("=");
+        // If first entry with this name
+    if (typeof query_string[pair[0]] === "undefined") {
+      query_string[pair[0]] = decodeURIComponent(pair[1]);
+        // If second entry with this name
+    } else if (typeof query_string[pair[0]] === "string") {
+      var arr = [ query_string[pair[0]],decodeURIComponent(pair[1]) ];
+      query_string[pair[0]] = arr;
+        // If third or later entry with this name
+    } else {
+      query_string[pair[0]].push(decodeURIComponent(pair[1]));
+    }
+  } 
+    return query_string;
+}();
+
+	      var openFile = function(event) {
+        var input = event.target;
+
+        var reader = new FileReader();
+        reader.onload = function(){
+        			var d1 = [], i=0;
+        	var lines = reader.result.split('\n');
+    		for(var line = 0; line < lines.length; line++){
+    			var num = lines[line].split(',');
+    			if (num.length==2)
+    				if (QueryString.par==num[0]) {
+    					d1.push([i, num[1]]);
+    					i=i+1;
+      					//console.log(num[0]+":"+num[1]);
+      				}
+    		}
+
+    		$.plot("#placeholder", [ d1]);
+
+			$("#footer").prepend("Flot " + $.plot.version + " &ndash; ");
+        };
+        reader.readAsText(input.files[0]);
+      };
+	</script>
+</head>
+<body>
+	<input type='file' accept='text/plain' onchange='openFile(event)'>
+	<div id="content">
+
+		<div class="demo-container">
+			<div id="placeholder" class="demo-placeholder"></div>
+		</div>
+	</div>
+
+</body>
+</html>

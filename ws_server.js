@@ -17,13 +17,26 @@ var inputfanvents;
 var inputburnertemp;
 var inputdischargetime;
 var inputfinalmoisture;
+var dataSensors = null;
 
+var SENSOR_COUNT = 19;
+var DATA_SIZE = 2;
+var START_DATA_COMMAND = 0xFF;
+var STOP_DATA_COMMAND = 0xFE;
+var TEST_COMMAND = 0x00;
+var TEST_SENSOR_COMMAND = 0xFD;
+var sensorIdx = 1;
+
+var i2c = require('i2c');
+var address = 0x04;
+var wire = new i2c(address,{device:'/dev/i2c-1'});
 
 var server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
     response.writeHead(404);
     response.end();
 });
+
 server.listen(8080, function() {
     console.log((new Date()) + ' Server is listening on port 8080');
 });
@@ -60,65 +73,80 @@ wsServer.on('request', function(request) {
 
             if(msgJSON.start==1) {
             	inputtime = msgJSON.JSONtime;
-            	startSensors(1);
+            	//startSensors(1);
 
-            	sendTimer = setInterval(recursiveTimer,1000);
+		wire.readBytes(START_DATA_COMMAND, 1, function(err, res) {
+			if(res.length==1 && res[0]==START_DATA_COMMAND)
+            			sendTimer = setInterval(recursiveTimer,1000);
+			else
+				connection.sendUTF("Could not start sensor reading");
+		});
             } else if(msgJSON.start==0) {
-				startSensors(0);            	
-            	clearInterval(sendTimer);
+		//startSensors(0);
+                wire.readBytes(STOP_DATA_COMMAND, 1, function(err, res) {
+                        if(res.length==1 && res[0]==STOP_DATA_COMMAND) {
+                                clearInterval(sendTimer);
+				sensorIdx = 1;
+			}
+                        else
+                                connection.sendUTF("Could not stop sensor reading");
+                });
 
             	var outfilename = inputtime+".txt";
 
             	fs.writeFile(outfilename, inputtime+"\n", function (err) {
   					if (err) return console.log(err);
-  					console.log('Time: '+inputtime+ ' saved to file '+outfilename);
+  					else console.log('Time: '+inputtime+ ' saved to file '+outfilename);
 				});
 
             	fs.appendFile(outfilename, "inputgrainmass:"+inputgrainmass+"\n", function (err) {
   					if (err) return console.log(err);
-  					console.log(inputgrainmass+ ' saved to file '+outfilename);
+  					else console.log(inputgrainmass+ ' saved to file '+outfilename);
 				});
 
             	fs.appendFile(outfilename, "inputgraintype:"+inputgraintype+"\n", function (err) {
   					if (err) return console.log(err);
-  					console.log(inputgraintype+ ' saved to file '+outfilename);
+  					else console.log(inputgraintype+ ' saved to file '+outfilename);
 				});
 				
             	fs.appendFile(outfilename, "inputinitmoisture:"+inputinitmoisture+"\n", function (err) {
   					if (err) return console.log(err);
-  					console.log(inputinitmoisture+ ' saved to file '+outfilename);
+  					else console.log(inputinitmoisture+ ' saved to file '+outfilename);
 				});
 
             	fs.appendFile(outfilename, "inputhotairgates:"+inputhotairgates+"\n", function (err) {
   					if (err) return console.log(err);
-  					console.log(inputhotairgates+ ' saved to file '+outfilename);
+  					else console.log(inputhotairgates+ ' saved to file '+outfilename);
 				});
 
             	fs.appendFile(outfilename, "inputairvents:"+inputairvents+"\n", function (err) {
   					if (err) return console.log(err);
-  					console.log(inputairvents+ ' saved to file '+outfilename);
+  					else console.log(inputairvents+ ' saved to file '+outfilename);
 				});
 
             	fs.appendFile(outfilename, "inputburnertemp:"+inputburnertemp+"\n", function (err) {
   					if (err) return console.log(err);
-  					console.log(inputburnertemp+ ' saved to file '+outfilename);
+  					else console.log(inputburnertemp+ ' saved to file '+outfilename);
 				});
 
             	fs.appendFile(outfilename, "inputdischargetime:"+inputdischargetime+"\n", function (err) {
   					if (err) return console.log(err);
-  					console.log(inputdischargetime+ ' saved to file '+outfilename);
+  					else console.log(inputdischargetime+ ' saved to file '+outfilename);
 				});
 
             	fs.appendFile(outfilename, "inputfinalmoisture:"+inputfinalmoisture+"\n", function (err) {
   					if (err) return console.log(err);
-  					console.log(inputfinalmoisture+ ' saved to file '+outfilename);
+  					else console.log(inputfinalmoisture+ ' saved to file '+outfilename);
 				});
 
-            	fs.appendFile(outfilename, messageArr+"\n", function (err) {
-  					if (err) return console.log(err);
-  					console.log('data saved to file '+outfilename);
-  					messageArr = null;
-				});
+		fs.appendFile(outfilename, dataSensors, function (err) {
+                                        if (err) {
+						 return console.log(err);
+					} else {
+                                        	console.log('Sensor data saved to file '+outfilename);
+						dataSensors = null;
+					}
+                                });
 
             }
 
@@ -153,15 +181,79 @@ wsServer.on('request', function(request) {
 });
 
 function recursiveTimer() {
-	console.log("Sending data to client!");
-	messageArr = messageArr + "Some data telksj"+",";
-	connection.sendUTF("Some data telksj");
+	console.log("Checking for new sensor data...");
+
+	if (sensorIdx>SENSOR_COUNT)
+		sensorIdx = 1;		
+
+	wire.readBytes(sensorIdx, DATA_SIZE+1, function(err, res) {
+        	// result contains a buffer of bytes
+        	if(err) {
+                	console.log("RPi node not responding: "+err);
+                	//connection.sendUTF("RPi node not responding: "+err);
+        	}
+        	else {
+                	if (res.length==DATA_SIZE+1 && res[0]==sensorIdx) {
+				if (res[1]!=0xFF || res[2]!=0xFF) {
+					var tmp = (res[1]<<8);
+					tmp=tmp|res[2];
+					tmp = tmp/10;
+					console.log("Sensor ["+sensorIdx+"]: "+tmp);
+					connection.sendUTF("Sensor ["+sensorIdx+"]: "+tmp);
+					dataSensors = dataSensors+sensorIdx+", "+tmp+"\n";
+				} else if(res[1]==0xFF && res[2]==0xFF) {
+					console.log("Sensor ["+sensorIdx+"] not connected or faulty!!!");
+                                        connection.sendUTF("Sensor ["+sensorIdx+"] not connected or faulty!!!");
+				}
+                	} else if(res.length==DATA_SIZE+1 && res[0]==0xFF) {
+                        	console.log("No new sensor: "+sensorIdx+" data");
+                	} else if(res.length!=DATA_SIZE+1){
+                        	console.log("Error RPi node (wrong length)");
+                        	connection.sendUTF("Error RPi node (wrong length)");
+                	}
+
+			sensorIdx = sensorIdx + 1;
+        	} 
+	});
+	
 }
 
-function startSensors(state) {
-
-}
+//function startSensors(state) {
+//
+//}
 
 function testSensors() {
+	console.log("Testing boards");
+	connection.sendUTF("RPi OK!");
 
+	wire.readBytes(TEST_COMMAND, 1, function(err, res) {
+  		// result contains a buffer of bytes
+        	if(err) {
+                	console.log("Error RPi node:"+err);
+			connection.sendUTF("Error RPi node:"+err);
+		}
+        	else {
+			if (res.length!=1) {
+				console.log("Error RPi node (length not 1)");
+                		connection.sendUTF("Error RPi node (length not 1)");
+			} else if(res.length==1 && res[0]==0x01) {
+                        	console.log("RPi node OK!");
+                        	connection.sendUTF("RPi node OK!");
+				setTimeout(function () {
+					wire.readBytes(TEST_SENSOR_COMMAND, 1, function(err, res) {
+                                        	if(res.length==1 && res[0]==0x01) {
+                                                	console.log("Sensor board OK && Radio OK!");
+                                                	connection.sendUTF("Sensor board OK && Radio OK!");
+                                        	} else {
+                                                	console.log("Sensor board faulty or Radio not working!");
+                                                	connection.sendUTF("Sensor board faulty or Radio not working!");
+                                        	}
+					});
+				}, 1000);
+			} else {
+                        	console.log("Error RPi node (wrong data)");
+                        	connection.sendUTF("Error RPi node (wrong data)");
+			}
+        	}
+	});
 }
