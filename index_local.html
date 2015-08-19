@@ -292,8 +292,8 @@
 
 
         var data = [
-            {x: xArray, y: ySensorTemp1, name: 'T1'},
-            {x: xArray, y: ySensorHumid1, name: 'H1', yaxis: 'y2'},
+            {x: xArray, y: ySensorTemp1, name: 'T1', xaxis: 'x1', yaxis: 'y1'},
+            {x: xArray, y: ySensorHumid1, name: 'H1', xaxis: 'x1', yaxis: 'y2'},
             {x: xArray, y: ySensorTemp2, name: 'T2', xaxis: 'x2', yaxis: 'y3'},
             {x: xArray, y: ySensorHumid2, name: 'H2', xaxis: 'x2', yaxis: 'y4'},
             {x: xArray, y: ySensorTemp3, name: 'T3', xaxis: 'x3', yaxis: 'y5'},
@@ -313,7 +313,7 @@
         ];
 
         var layout = {
-            xaxis: {title: 'Time (s)'},
+            xaxis: {title: 'Time (s)', anchor: 'y1'},
             yaxis: {title: 'T1 (C)', domain: [0, 0.09]},
             yaxis2: {title: 'H1 (%)', domain: [0, 0.09], side: "right"},
             xaxis2: {title: 'Time (s)', anchor: 'y3'},

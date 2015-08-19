@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Grain Drier</title>
+  <meta charset="UTF-8" />
+      <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <link href="examples.css" rel="stylesheet" type="text/css">  
+    <script src="jquery-1.11.3.min.js"></script>
+    <script language="javascript" type="text/javascript" src="jquery.flot.js"></script>
+
+    <script>
+      "use strict";
+
+      var txtreport;
+      var socket;
+      var sensorplot;
+
+      var xArray = [];
+      var ySensorTemp1 = [];
+      var ySensorHumid1 = [];
+
+      var ySensorTemp2 = [];
+      var ySensorHumid2 = [];
+
+      var ySensorTemp3 = [];
+      var ySensorHumid3 = [];
+
+      var ySensorTemp4 = [];
+      var ySensorHumid4 = [];
+
+      var ySensorTemp5 = [];
+      var ySensorHumid5 = [];
+
+      var ySensorTemp6 = [];
+      var ySensorHumid6 = [];
+
+      var ySensorTemp7 = [];
+      var ySensorHumid7 = [];
+
+      var ySensorTemp8 = [];
+      var ySensorHumid8 = [];
+
+      var ySensorTemp9 = [];
+      var ySensorHumid9 = [];
+
+      var ySMoisture1 = [];
+      var yGMoisture1 = [];
+
+      var ySMoisture2 = [];
+      var yGMoisture2 = [];
+
+      var ySMoisture3 = [];
+      var yGMoisture3 = [];
+
+      var ySMoisture4 = [];
+      var yGMoisture4 = [];
+
+      var ySMoisture5 = [];
+      var yGMoisture5 = [];
+
+      var ySMoisture6 = [];
+      var yGMoisture6 = [];
+
+      var ySMoisture7 = [];
+      var yGMoisture7 = [];
+
+      var ySMoisture8 = [];
+      var yGMoisture8 = [];
+
+      var ySMoisture9 = [];
+      var yGMoisture9 = [];
+
+      var currx = 0;
+      var stepx = 0.1;
+
+      var currTempSens = [0,0,0,0,0,0,0,0,0];
+      var currHumidSens = [0,0,0,0,0,0,0,0,0];
+      var currSMoisture = [0,0,0,0,0,0,0,0,0];
+      var currEMoisture = [0,0,0,0,0,0,0,0,0];
+
+      var numPts = 100;
+
+      // Initialize everything when the window finishes loading
+      window.addEventListener("load", function(event) {
+        var start = document.getElementById("startbtn");
+        var stop = document.getElementById("stopbtn");
+        var test = document.getElementById("testbtn");
+        var clear = document.getElementById("clearbtn");
+        var save = document.getElementById("savebtn");
+
+        var inputgrainmass = document.getElementById("inputgrainmass");
+        var inputgraintype = document.getElementById("inputgraintype");
+        var inputinitmoisture = document.getElementById("inputinitmoisture");
+        var inputhotairgates = document.getElementById("inputhotairgates");
+        var inputairvents = document.getElementById("inputairvents");
+        var inputfanvents = document.getElementById("inputfanvents");
+        var inputburnertemp = document.getElementById("inputburnertemp");
+        var inputdischargetime = document.getElementById("inputdischargetime");
+        var inputfinalmoisture = document.getElementById("inputfinalmoisture");
+
+        txtreport = document.getElementById("txtreport");
+        sensorplot = document.getElementById('sensorplot');
+
+        inputgrainmass.value = 1000;
+        inputgraintype.value = "cereals";
+        inputinitmoisture.value = 23;
+        inputhotairgates.value = 123;
+        inputairvents.value = 1;
+        inputfanvents.value = 2;
+        inputburnertemp.value = 65;
+        inputdischargetime.value = 15;
+        inputfinalmoisture.value = 9;
+
+        socket = new WebSocket("ws://localhost:8080", "realtime-protocol");
+
+        // Create a new connection when the Connect button is clicked
+        socket.addEventListener("open", function(event) {
+          txtreport.textContent = "["+timeStamp()+"] "+"Connected to PI Hub\n";
+          txtreport.scrollTop = txtreport.scrollHeight;
+        });
+
+        // Display messages received from the server
+        socket.addEventListener("message", function(event) {
+          var tstamp = new Date();
+          var timestr = formatTime(tstamp);
+
+          addTextStamp(event.data, timestr);
+          scrollList();
+          txtreport.scrollTop = txtreport.scrollHeight;
+
+          var idx = event.data.indexOf("Sensor ["), idxb;
+          if (idx>=0) {
+            var strtmp = event.data.substring(idx,event.data.length);
+            var beg = strtmp.indexOf("[");
+            var end = strtmp.indexOf("]");
+            var strtmp2 = strtmp.substring(beg+1,end);
+            var sensidx = parseInt(strtmp2);
+
+            if (sensidx==NaN)
+            	return;
+
+            idx = strtmp.indexOf(":")
+            strtmp2 = strtmp.substring(idx+2,strtmp.length);
+            var val = parseFloat(strtmp2);
+
+            if (val==NaN)
+            	return;
+
+            if(sensidx>=1 && sensidx<=9) {
+              sensidx --;
+              currTempSens[sensidx] = val;
+            }
+            else if(sensidx>=10 && sensidx<=18) {
+              sensidx -=10;
+              currHumidSens[sensidx] = val;
+            }
+            else return;
+
+            ySensorTemp1 = ySensorTemp1.slice(1);
+            ySensorTemp1.push(currTempSens[0]);
+            ySensorHumid1 = ySensorHumid1.slice(1);
+            ySensorHumid1.push(currHumidSens[0]);
+
+            ySensorTemp2 = ySensorTemp2.slice(1);
+            ySensorTemp2.push(currTempSens[1]);
+            ySensorHumid2 = ySensorHumid2.slice(1);
+            ySensorHumid2.push(currHumidSens[1]);
+
+            ySensorTemp3 = ySensorTemp3.slice(1);
+            ySensorTemp3.push(currTempSens[2]);
+            ySensorHumid3 = ySensorHumid3.slice(1);
+            ySensorHumid3.push(currHumidSens[2]);
+
+            ySensorTemp4 = ySensorTemp4.slice(1);
+            ySensorTemp4.push(currTempSens[3]);
+            ySensorHumid4 = ySensorHumid4.slice(1);
+            ySensorHumid4.push(currHumidSens[3]);
+
+            ySensorTemp5 = ySensorTemp5.slice(1);
+            ySensorTemp5.push(currTempSens[4]);
+            ySensorHumid5 = ySensorHumid5.slice(1);
+            ySensorHumid5.push(currHumidSens[4]);
+
+            ySensorTemp6 = ySensorTemp6.slice(1);
+            ySensorTemp6.push(currTempSens[5]);
+            ySensorHumid6 = ySensorHumid6.slice(1);
+            ySensorHumid6.push(currHumidSens[5]);
+
+            ySensorTemp7 = ySensorTemp7.slice(1);
+            ySensorTemp7.push(currTempSens[6]);
+            ySensorHumid7 = ySensorHumid7.slice(1);
+            ySensorHumid7.push(currHumidSens[6]);
+
+            ySensorTemp8 = ySensorTemp8.slice(1);
+            ySensorTemp8.push(currTempSens[7]);
+            ySensorHumid8 = ySensorHumid8.slice(1);
+            ySensorHumid8.push(currHumidSens[7]);
+
+            ySensorTemp9 = ySensorTemp9.slice(1);
+            ySensorTemp9.push(currTempSens[8]);
+            ySensorHumid9 = ySensorHumid9.slice(1);
+            ySensorHumid9.push(currHumidSens[8]);
+
+            ySMoisture1 = ySMoisture1.slice(1);
+            ySMoisture1.push(ComputeSMoisture(inputgraintype.value, currHumidSens[0]));
+            yGMoisture1 = yGMoisture1.slice(1);
+            yGMoisture1.push(ComputeGMoisture(currHumidSens[0]));
+
+            ySMoisture2 = ySMoisture2.slice(1);
+            ySMoisture2.push(ComputeSMoisture(inputgraintype.value, currHumidSens[1]));
+            yGMoisture2 = yGMoisture2.slice(1);
+            yGMoisture2.push(ComputeGMoisture(currHumidSens[1]));
+
+            ySMoisture3 = ySMoisture3.slice(1);
+            ySMoisture3.push(ComputeSMoisture(inputgraintype.value, currHumidSens[2]));
+            yGMoisture3 = yGMoisture3.slice(1);
+            yGMoisture3.push(ComputeGMoisture(currHumidSens[2]));
+
+            ySMoisture4 = ySMoisture4.slice(1);
+            ySMoisture4.push(ComputeSMoisture(inputgraintype.value, currHumidSens[3]));
+            yGMoisture4 = yGMoisture4.slice(1);
+            yGMoisture4.push(ComputeGMoisture(currHumidSens[3]));
+
+            ySMoisture5 = ySMoisture5.slice(1);
+            ySMoisture5.push(ComputeSMoisture(inputgraintype.value, currHumidSens[4]));
+            yGMoisture5 = yGMoisture5.slice(1);
+            yGMoisture5.push(ComputeGMoisture(currHumidSens[4]));
+
+            ySMoisture6 = ySMoisture6.slice(1);
+            ySMoisture6.push(ComputeSMoisture(inputgraintype.value, currHumidSens[5]));
+            yGMoisture6 = yGMoisture6.slice(1);
+            yGMoisture6.push(ComputeGMoisture(currHumidSens[5]));
+
+            ySMoisture7 = ySMoisture7.slice(1);
+            ySMoisture7.push(ComputeSMoisture(inputgraintype.value, currHumidSens[6]));
+            yGMoisture7 = yGMoisture7.slice(1);
+            yGMoisture7.push(ComputeGMoisture(currHumidSens[6]));
+
+            ySMoisture8 = ySMoisture8.slice(1);
+            ySMoisture8.push(ComputeSMoisture(inputgraintype.value, currHumidSens[7]));
+            yGMoisture8 = yGMoisture8.slice(1);
+            yGMoisture8.push(ComputeGMoisture(currHumidSens[7]));
+
+            ySMoisture9 = ySMoisture9.slice(1);
+            ySMoisture9.push(ComputeSMoisture(inputgraintype.value, currHumidSens[8]));
+            yGMoisture9 = yGMoisture9.slice(1);
+            yGMoisture9.push(ComputeGMoisture(currHumidSens[8]));
+
+            sensorplot1.setData([{data: ZipData(ySensorTemp1)}, {data: ZipData(ySensorHumid1)}]);
+            sensorplot2.setData([{data: ZipData(ySensorTemp2)}, {data: ZipData(ySensorHumid2)}]);
+            sensorplot3.setData([{data: ZipData(ySensorTemp3)}, {data: ZipData(ySensorHumid3)}]);
+            sensorplot4.setData([{data: ZipData(ySensorTemp4)}, {data: ZipData(ySensorHumid4)}]);
+            sensorplot5.setData([{data: ZipData(ySensorTemp5)}, {data: ZipData(ySensorHumid5)}]);
+            sensorplot6.setData([{data: ZipData(ySensorTemp6)}, {data: ZipData(ySensorHumid6)}]);
+            sensorplot7.setData([{data: ZipData(ySensorTemp7)}, {data: ZipData(ySensorHumid7)}]);
+            sensorplot8.setData([{data: ZipData(ySensorTemp8)}, {data: ZipData(ySensorHumid8)}]);
+            sensorplot9.setData([{data: ZipData(ySensorTemp9)}, {data: ZipData(ySensorHumid9)}]);
+
+            moistureplot1.setData([{data: ZipData(ySMoisture1)}, {data: ZipData(yGMoisture1)}]);
+            moistureplot2.setData([{data: ZipData(ySMoisture2)}, {data: ZipData(yGMoisture2)}]);
+            moistureplot3.setData([{data: ZipData(ySMoisture3)}, {data: ZipData(yGMoisture3)}]);
+            moistureplot4.setData([{data: ZipData(ySMoisture4)}, {data: ZipData(yGMoisture4)}]);
+            moistureplot5.setData([{data: ZipData(ySMoisture5)}, {data: ZipData(yGMoisture5)}]);
+            moistureplot6.setData([{data: ZipData(ySMoisture6)}, {data: ZipData(yGMoisture6)}]);
+            moistureplot7.setData([{data: ZipData(ySMoisture7)}, {data: ZipData(yGMoisture7)}]);
+            moistureplot8.setData([{data: ZipData(ySMoisture8)}, {data: ZipData(yGMoisture8)}]);
+            moistureplot9.setData([{data: ZipData(ySMoisture9)}, {data: ZipData(yGMoisture9)}]);
+
+            sensorplot1.draw();
+			sensorplot2.draw();
+            sensorplot3.draw();
+			sensorplot4.draw();
+            sensorplot5.draw();
+            sensorplot6.draw();
+            sensorplot7.draw();
+            sensorplot8.draw();
+            sensorplot9.draw();
+
+            moistureplot1.draw();
+            moistureplot2.draw();
+            moistureplot3.draw();
+            moistureplot4.draw();
+            moistureplot5.draw();
+            moistureplot6.draw();
+            moistureplot7.draw();
+            moistureplot8.draw();
+            moistureplot9.draw();
+
+          }
+
+        });
+
+        // Display any errors that occur
+        socket.addEventListener("error", function(event) {
+          txtreport.textContent = "["+timeStamp()+"] "+"Error connecting to PI Hub "+event+"\n";
+          txtreport.scrollTop = txtreport.scrollHeight;
+        });
+
+        socket.addEventListener("close", function(event) {
+          addTextStamp("Connection to PI Hub closed", timeStamp());
+          txtreport.scrollTop = txtreport.scrollHeight;
+        });
+
+        start.addEventListener("click", function(event) {
+          setServerState(1);
+          stop.disabled = false;
+          start.disabled = true;
+          test.disabled = true;
+          save.disabled = true;
+        });
+
+        stop.addEventListener("click", function(event) {
+          setServerState(0);
+
+          stop.disabled = true;
+          start.disabled = false;
+          test.disabled = false;
+          save.disabled = false;
+        });
+
+        test.addEventListener("click", function(event) {
+          var jsonmsg = setTextVar("test", "1", "Testing Sensor Connection: ");
+          socket.send(jsonmsg);
+
+        });
+
+        clear.addEventListener("click", function(event) {
+          clearText();
+        });
+
+        save.addEventListener("click", function(event) {
+          saveTextAsFile();
+        });
+
+        inputgrainmass.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputgrainmass", inputgrainmass.value, "Set Total Grain Mass: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputgraintype.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputgraintype", inputgraintype.value, "Set Grain Type: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputinitmoisture.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputinitmoisture", inputinitmoisture.value, "Set Initial Moisture: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputhotairgates.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputhotairgates", inputhotairgates.value, "Set Hot Air Gates: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputairvents.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputairvents", inputairvents.value, "Set Air Vents: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputfanvents.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputfanvents", inputfanvents.value, "Set Fan Vents: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputburnertemp.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputburnertemp", inputburnertemp.value, "Set Burner Temperature: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputdischargetime.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputdischargetime", inputdischargetime.value, "Set Discharge Time: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        inputfinalmoisture.addEventListener("keypress", function(event) {
+          if (event.keyCode==13) {
+            var jsonmsg = setTextVar("inputfinalmoisture", inputfinalmoisture.value, "Set Final Moisture: ");
+            socket.send(jsonmsg);
+          }
+        });
+
+        ySensorTemp1 = FillData(0,numPts);
+		ySensorTemp2 = FillData(0,numPts);
+		ySensorTemp3 = FillData(0,numPts);
+		ySensorTemp4 = FillData(0,numPts);
+		ySensorTemp5 = FillData(0,numPts);
+		ySensorTemp6 = FillData(0,numPts);
+		ySensorTemp7 = FillData(0,numPts);
+		ySensorTemp8 = FillData(0,numPts);
+		ySensorTemp9 = FillData(0,numPts);
+		ySensorHumid1 = FillData(0,numPts);
+		ySensorHumid2 = FillData(0,numPts);
+		ySensorHumid3 = FillData(0,numPts);
+		ySensorHumid4 = FillData(0,numPts);
+		ySensorHumid5 = FillData(0,numPts);
+		ySensorHumid6 = FillData(0,numPts);
+		ySensorHumid7 = FillData(0,numPts);
+		ySensorHumid8 = FillData(0,numPts);
+		ySensorHumid9 = FillData(0,numPts);
+
+		ySMoisture1 = FillData(0,numPts);
+		ySMoisture2 = FillData(0,numPts);
+		ySMoisture3 = FillData(0,numPts);
+		ySMoisture4 = FillData(0,numPts);
+		ySMoisture5 = FillData(0,numPts);
+		ySMoisture6 = FillData(0,numPts);
+		ySMoisture7 = FillData(0,numPts);
+		ySMoisture8 = FillData(0,numPts);
+		ySMoisture9 = FillData(0,numPts);
+
+		yGMoisture1 = FillData(0,numPts);
+		yGMoisture2 = FillData(0,numPts);
+		yGMoisture3 = FillData(0,numPts);
+		yGMoisture4 = FillData(0,numPts);
+		yGMoisture5 = FillData(0,numPts);
+		yGMoisture6 = FillData(0,numPts);
+		yGMoisture7 = FillData(0,numPts);
+		yGMoisture8 = FillData(0,numPts);
+		yGMoisture9 = FillData(0,numPts);
+
+        currx = (numPts-1) * stepx;
+
+        var sensorplot1 = $.plot("#sensorholder1", [
+                { data: ZipData(ySensorTemp1), label: "Temperature[1] (C)" },
+                { data: ZipData(ySensorHumid1), label: "Humidity[1] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 0,
+                  max: 100,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var sensorplot2 = $.plot("#sensorholder2", [
+                { data: ZipData(ySensorTemp2), label: "Temperature[2] (C)" },
+                { data: ZipData(ySensorHumid2), label: "Humidity[2] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 0,
+                  max: 100,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var sensorplot3 = $.plot("#sensorholder3", [
+                { data: ZipData(ySensorTemp3), label: "Temperature[3] (C)" },
+                { data: ZipData(ySensorHumid3), label: "Humidity[3] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 0,
+                  max: 100,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var sensorplot4 = $.plot("#sensorholder4", [
+                { data: ZipData(ySensorTemp4), label: "Temperature[4] (C)" },
+                { data: ZipData(ySensorHumid4), label: "Humidity[4] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 0,
+                  max: 100,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var sensorplot5 = $.plot("#sensorholder5", [
+                { data: ZipData(ySensorTemp5), label: "Temperature[5] (C)" },
+                { data: ZipData(ySensorHumid5), label: "Humidity[5] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 0,
+                  max: 100,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var sensorplot6 = $.plot("#sensorholder6", [
+                { data: ZipData(ySensorTemp6), label: "Temperature[6] (C)" },
+                { data: ZipData(ySensorHumid6), label: "Humidity[6] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 0,
+                  max: 100,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var sensorplot7 = $.plot("#sensorholder7", [
+                { data: ZipData(ySensorTemp7), label: "Temperature[7] (C)" },
+                { data: ZipData(ySensorHumid7), label: "Humidity[7] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 0,
+                  max: 100,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var sensorplot8 = $.plot("#sensorholder8", [
+                { data: ZipData(ySensorTemp8), label: "Temperature[8] (C)" },
+                { data: ZipData(ySensorHumid8), label: "Humidity[8] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 0,
+                  max: 100,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var sensorplot9 = $.plot("#sensorholder9", [
+                { data: ZipData(ySensorTemp9), label: "Temperature[9] (C)" },
+                { data: ZipData(ySensorHumid9), label: "Humidity[9] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 0,
+                  max: 100,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var moistureplot1 = $.plot("#moistureholder1", [
+                { data: ZipData(ySMoisture1), label: "Equilibrium seed moisture[1] (%)" },
+                { data: ZipData(yGMoisture1), label: "Equilibrium grain moisture[1] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 5,
+                  max: 25,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var moistureplot2 = $.plot("#moistureholder2", [
+                { data: ZipData(ySMoisture2), label: "Equilibrium seed moisture[2] (%)" },
+                { data: ZipData(yGMoisture2), label: "Equilibrium grain moisture[2] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 5,
+                  max: 25,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var moistureplot3 = $.plot("#moistureholder3", [
+                { data: ZipData(ySMoisture3), label: "Equilibrium seed moisture[3] (%)" },
+                { data: ZipData(yGMoisture3), label: "Equilibrium grain moisture[3] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 5,
+                  max: 25,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var moistureplot4 = $.plot("#moistureholder4", [
+                { data: ZipData(ySMoisture4), label: "Equilibrium seed moisture[4] (%)" },
+                { data: ZipData(yGMoisture4), label: "Equilibrium grain moisture[4] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 5,
+                  max: 25,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var moistureplot5 = $.plot("#moistureholder5", [
+                { data: ZipData(ySMoisture5), label: "Equilibrium seed moisture[5] (%)" },
+                { data: ZipData(yGMoisture5), label: "Equilibrium grain moisture[5] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 5,
+                  max: 25,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var moistureplot6 = $.plot("#moistureholder6", [
+                { data: ZipData(ySMoisture6), label: "Equilibrium seed moisture[6] (%)" },
+                { data: ZipData(yGMoisture6), label: "Equilibrium grain moisture[6] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 5,
+                  max: 25,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var moistureplot7 = $.plot("#moistureholder7", [
+                { data: ZipData(ySMoisture7), label: "Equilibrium seed moisture[7] (%)" },
+                { data: ZipData(yGMoisture7), label: "Equilibrium grain moisture[7] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 5,
+                  max: 25,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var moistureplot8 = $.plot("#moistureholder8", [
+                { data: ZipData(ySMoisture8), label: "Equilibrium seed moisture[8] (%)" },
+                { data: ZipData(yGMoisture8), label: "Equilibrium grain moisture[8] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 5,
+                  max: 25,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+        var moistureplot9 = $.plot("#moistureholder9", [
+                { data: ZipData(ySMoisture9), label: "Equilibrium seed moisture[9] (%)" },
+                { data: ZipData(yGMoisture9), label: "Equilibrium grain moisture[9] (%)", yaxis: 2 }
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: {
+                  min: 5,
+                  max: 25,
+                  alignTicksWithAxis: 0,
+                  position: 'left'
+                }
+        });
+
+      });
+		
+	  function ComputeSMoisture(graintype,humidity)
+	  {
+	  	var res = 0;
+
+	  	if (graintype=="cereals" && humidity<=40)
+	  		res = 11;
+	  	else if (graintype=="cereals" && humidity>=90)
+	  		res = 23;
+	  	else if (graintype=="cereals" && humidity>40 && humidity<=80)
+	  		res = (((17-11)/(80-40))*(humidity-40))+11;
+	  	else if (graintype=="cereals" && humidity>80 && humidity<90)
+	  		res = (((23-17)/(90-80))*(humidity-80))+17;
+	  	else if (graintype=="ryegrass" && humidity<=40)
+	  		res = 9;
+	  	else if (graintype=="ryegrass" && humidity>=90)
+	  		res = 24.9;
+	  	else if (graintype=="ryegrass" && humidity>40 && humidity<=70)
+	  		res = (((13.8-9)/(70-40))*(humidity-40))+9;
+	  	else if (graintype=="ryegrass" && humidity>70 && humidity<90)
+	  		res = (((24.9-13.8)/(90-70))*(humidity-70))+13.8;
+	  	else if (graintype=="oilseed" && humidity<=40)
+	  		res = 6;
+	  	else if (graintype=="oilseed" && humidity>=90)
+	  		res = 17;
+	  	else if (graintype=="oilseed" && humidity>40 && humidity<=70)
+	  		res = (((8-6)/(70-40))*(humidity-40))+6;
+	  	else if (graintype=="oilseed" && humidity>70 && humidity<90)
+	  		res = (((17-8)/(90-70))*(humidity-70))+8;
+
+	  	return res;
+	  }
+
+	  function ComputeGMoisture(humidity)
+	  {
+	  	var res = 9;
+	  	if (humidity<=30)
+	  		return res;
+	  	else if(humidity>=85)
+	  		return 18;
+	  	else {
+	  		res = ((9/55)*(humidity-30))+9;
+	  	}
+	  	return res;
+	  }
+
+      function FillData(value, num)
+      {
+      	var res = [];
+      	for (var i=0; i<num; i++) {
+      		res.push(value);
+      	}
+      	return res;
+      }
+
+      function ZipData(arr)
+      {
+      	var res = [];
+      	for (var i=0;i<arr.length; i++) {
+      		res.push([i,arr[i]]);
+      	}
+      	return res;
+      }
+
+      function saveTextAsFile()
+      {
+        var textToWrite = txtreport.value;
+        var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
+        var fileNameToSaveAs = new Date().toISOString()+".txt";
+
+        var downloadLink = document.createElement("a");
+        downloadLink.download = fileNameToSaveAs;
+        downloadLink.innerHTML = "Download File";
+        if (window.webkitURL != null)
+        {
+          // Chrome allows the link to be clicked
+          // without actually adding it to the DOM.
+          downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+        }
+        else
+        {
+          // Firefox requires the link to be added to the DOM
+          // before it can be clicked.
+          downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+          downloadLink.onclick = destroyClickedElement;
+          downloadLink.style.display = "none";
+          document.body.appendChild(downloadLink);
+        }
+
+        downloadLink.click();
+      }
+
+      function destroyClickedElement(event)
+      {
+        document.body.removeChild(event.target);
+      }
+
+
+      function setTextVar(varname, varvalue, vartext)
+      {
+        var tstamp = new Date();
+        var timestr = formatTime(tstamp);
+        var jsonmsg = getJSONTimeheader(tstamp)+'"'+varname+'":'+'"'+varvalue+'"}';
+
+        addTextStamp(vartext+varvalue, timestr);
+
+        return jsonmsg;
+      }
+
+      function setServerState(state)
+      {
+        var tstamp = new Date();
+        var timestr = formatTime(tstamp);
+        var jsonmsg = getJSONTimeheader(tstamp)+'"start":';
+
+        if (state) {
+          addTextStamp("START Recording", timestr);
+          jsonmsg = jsonmsg + '"1"}';
+        } else {
+          addTextStamp("STOP Recording", timestr);
+          jsonmsg = jsonmsg + '"0"}';
+        }
+
+        socket.send(jsonmsg);
+      }
+
+      function getJSONTimeheader(tstamp)
+      {
+        return '{ "JSONtime":'+'"'+tstamp.toJSON()+'", ';
+      }
+
+      function clearText()
+      {
+        txtreport.value = "";
+      }
+
+      function addText(textval)
+      {
+        txtreport.value = txtreport.value + textval+"\n";
+        scrollList();
+      }
+
+      function addTextStamp(textval, timest)
+      {
+        var fulltext = "["+timest+"] "+textval;
+        addText(fulltext);
+      }
+
+      function stateFunText(state, timest)
+      {
+        if (state)
+          addTextStamp("START Recording", timest);
+        else
+          addTextStamp("STOP Recording", timest);
+      }
+
+      function timeStamp() {
+        var tstamp = new Date();
+        return tstamp.getDate()+':'+(tstamp.getMonth()+1)+':'+tstamp.getFullYear()+'::'+tstamp.getHours()+':'+tstamp.getMinutes()+':'+tstamp.getSeconds();
+      }
+
+      function formatTime(tstamp)
+      {
+        return tstamp.getDate()+':'+(tstamp.getMonth()+1)+':'+tstamp.getFullYear()+'::'+tstamp.getHours()+':'+tstamp.getMinutes()+':'+tstamp.getSeconds();
+
+      }
+
+      function scrollList() {
+        if(txtreport.length)
+          txtreport.scrollTop(txtreport[0].scrollHeight - txtreport.height());
+
+      	txtreport.scrollTop = txtreport.scrollHeight;
+      }
+
+    </script>
+
+    <!-- Bootstrap -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+    <div class="col-md-12">
+    <h2>Grain Drier Recording Page</h2>
+    </div>
+    <div class="container-fluid">
+      <div class="col-md-6">
+        <p>
+          <button id="startbtn" type="button" class="btn btn-primary" enabled>Start recording</button>
+          <button id="stopbtn" type="button" class="btn btn-danger" disabled="disabled">Stop recording</button>
+          <button id="testbtn" type="button" class="btn btn-success" enabled>Test connection</button>
+          <button id="clearbtn" type="button" class="btn btn-success">Clear screen</button>
+          <button id="savebtn" type="button" class="btn btn-success">Save screen</button>
+        </p>
+        <label for="inputgrainmass">Total Grain Mass</label>
+        <input type="number" class="form-control" id="inputgrainmass" placeholder="1000">
+
+        <label for="inputgraintype">Grain Type</label>
+        <input type="textarea" class="form-control" id="inputgraintype" placeholder="cereals">
+
+        <label for="inputinitmoisture">Initial Moisture Content</label>
+        <input type="number" class="form-control" id="inputinitmoisture" placeholder="23">
+
+        <label for="inputhotairgates">Hot Air Gates</label>
+        <input type="number" class="form-control" id="inputhotairgates" placeholder="123">
+
+        <label for="inputairvents">Air Vents</label>
+        <input type="number" class="form-control" id="inputairvents" placeholder="1">
+
+        <label for="inputfanvents">Fan Vents</label>
+        <input type="number" class="form-control" id="inputfanvents" placeholder="2">
+
+        <label for="inputburnertemp">Burner Temperature</label>
+        <input type="number" class="form-control" id="inputburnertemp" placeholder="65">
+
+        <label for="inputdischargetime">Discharge Time</label>
+        <input type="number" class="form-control" id="inputdischargetime" placeholder="15">
+
+        <label for="inputfinalmoisture">Final Moisture Content</label>
+        <input type="number" class="form-control" id="inputfinalmoisture" placeholder="7.1">
+
+      </div>
+      <div class="col-md-6">
+        <textarea class="form-control" id="txtreport" rows="28" readonly></textarea>
+      </div>
+      <div class="col-md-12">
+      </div>
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="sensorholder1" class="demo-placeholder"></div>
+        </div>      
+      </div>
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="moistureholder1" class="demo-placeholder"></div>
+        </div>      
+      </div>      
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="sensorholder2" class="demo-placeholder"></div>
+        </div>      
+      </div>
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="moistureholder2" class="demo-placeholder"></div>
+        </div>      
+      </div>      
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="sensorholder3" class="demo-placeholder"></div>
+        </div>      
+      </div>
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="moistureholder3" class="demo-placeholder"></div>
+        </div>      
+      </div>
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="sensorholder4" class="demo-placeholder"></div>
+        </div>      
+      </div>      
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="moistureholder4" class="demo-placeholder"></div>
+        </div>      
+      </div>      
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="sensorholder5" class="demo-placeholder"></div>
+        </div>      
+      </div>      
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="moistureholder5" class="demo-placeholder"></div>
+        </div>      
+      </div>      
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="sensorholder6" class="demo-placeholder"></div>
+        </div>      
+      </div>      
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="moistureholder6" class="demo-placeholder"></div>
+        </div>      
+      </div>
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="sensorholder7" class="demo-placeholder"></div>
+        </div>      
+      </div>      
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="moistureholder7" class="demo-placeholder"></div>
+        </div>      
+      </div>      
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="sensorholder8" class="demo-placeholder"></div>
+        </div>      
+      </div>      
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="moistureholder8" class="demo-placeholder"></div>
+        </div>      
+      </div>      
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="sensorholder9" class="demo-placeholder"></div>
+        </div>      
+      </div>      
+      <div class="col-md-6">
+        <div class="demo-container">
+          <div id="moistureholder9" class="demo-placeholder"></div>
+        </div>      
+      </div>      
+
+    </div>
+    <script>
+      function onGrainTypeEnter() {
+        var key = window.event.keyCode;
+
+        if (key == 13) {
+          document.getElementById("txtreport").value =document.getElementById("txtreport").value + "["+timeStamp()+"] Grain type set to: "+$('#inputgraintype').val()+"\n";
+        }
+        else return false;
+      }
+    </script>
+
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="bootstrap/js/bootstrap.min.js"></script>  
+</body>
+</html>
