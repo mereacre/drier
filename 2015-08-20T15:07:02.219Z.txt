@@ -1,0 +1,12 @@
+2015-08-20T15:07:02.219Z
+inputgrainmass:undefined
+inputgraintype:undefined
+inputinitmoisture:undefined
+inputhotairgates:undefined
+inputairvents:undefined
+inputburnertemp:undefined
+inputdischargetime:undefined
+inputfinalmoisture:undefined
+4, 64.93161744438112
+5, 86.7433907231316
+6, 75.94126060139388

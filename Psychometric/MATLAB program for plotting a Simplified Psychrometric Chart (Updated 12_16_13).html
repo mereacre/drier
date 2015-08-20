@@ -1,0 +1,132 @@
+
+<!-- saved from url=(0084)https://www.ohio.edu/mechanical/thermo/Applied/Chapt.7_11/Psychro_chart/psychro.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="GENERATOR" content="Adobe PageMill 3.0 Mac">
+  <title>MATLAB program for plotting a Simplified Psychrometric Chart (Updated 12/16/13)</title>
+</head>
+<body background="./MATLAB program for plotting a Simplified Psychrometric Chart (Updated 12_16_13)_files/catpaw.gif">
+
+<h2>MATLAB program for plotting a Simplified Psychrometric Chart
+<font size="+1">(</font><font color="#ff0000" size="+1">Updated
+12/16/13</font><font size="+1">)</font></h2>
+
+<p><font size="+1"><img src="./MATLAB program for plotting a Simplified Psychrometric Chart (Updated 12_16_13)_files/psychro_chart.gif" width="615" height="461" align="BOTTOM" border="0" naturalsizeflag="3"></font></p>
+
+<p><font size="+1">The MATLAB program (<b><a href="https://www.ohio.edu/mechanical/thermo/Applied/Chapt.7_11/Psychro_chart/psychro.m" target="_blank">psychro.m</a></b>)
+(shown below) is used to plot the Simplified Psychrometric Chart
+shown above. Data is read from 2 datafiles containing water saturation
+temperature/pressure data, file <b><a href="https://www.ohio.edu/mechanical/thermo/Applied/Chapt.7_11/Psychro_chart/t_pg" target="_blank">t_pg</a></b>
+over 1°C intervals for plotting the saturation and constant
+relative humidity curves, and file <b><a href="https://www.ohio.edu/mechanical/thermo/Applied/Chapt.7_11/Psychro_chart/t_pg1" target="_blank">t_pg1</a></b>
+over 5°C intervals for plotting the wet-bulb temperature and
+enthalpy lines. The source of the data: 
+<b><a href="http://webbook.nist.gov/chemistry/fluid/" target="_blank">NIST
+Chemistry WebBook</a></b> - accessed Feb 2008</font></p>
+
+<p><font size="+1">The following four equations (refer back to
+<b><a href="https://www.ohio.edu/mechanical/thermo/Applied/Chapt.7_11/Chapter10a.html" target="_blank">Section a</a></b> and 
+<b><a href="https://www.ohio.edu/mechanical/thermo/Applied/Chapt.7_11/Chapter10b.html" target="_blank">Section b</a></b>) are evaluated in the program:</font></p>
+
+<blockquote>
+  <p><font size="+1">specific humidity: (sometimes known as: humidity
+  ratio or absolute humidity): <br>
+  <img src="./MATLAB program for plotting a Simplified Psychrometric Chart (Updated 12_16_13)_files/hum_grams.gif" width="385" height="71" align="BOTTOM" border="0" naturalsizeflag="3">:<br>
+  <img src="./MATLAB program for plotting a Simplified Psychrometric Chart (Updated 12_16_13)_files/enthalpy_grams.gif" width="331" height="71" align="BOTTOM" border="0" naturalsizeflag="3"><br>
+  <img src="./MATLAB program for plotting a Simplified Psychrometric Chart (Updated 12_16_13)_files/volume.gif" width="440" height="117" align="BOTTOM" border="0" naturalsizeflag="3"></font></p></blockquote>
+
+<p><font size="+1">Notice in the psychrometric chart that the
+oblique enthalpy axis is given by <img src="./MATLAB program for plotting a Simplified Psychrometric Chart (Updated 12_16_13)_files/omega.gif" width="14" height="11" align="BOTTOM" border="0" naturalsizeflag="3"> = T+5,
+for T varying between 0°C to 25°C. Substituting this value
+of <img src="./MATLAB program for plotting a Simplified Psychrometric Chart (Updated 12_16_13)_files/omega.gif" width="14" height="11" align="BOTTOM" border="0" naturalsizeflag="3"> in the enthalpy equation (above)
+leads to the intercept of the enthalpy line with the enthalpy
+axis as follows:</font></p>
+
+<blockquote>
+  <p><font size="+1">h = T + 2.5 (T + 5)</font></p>
+  <p><font size="+1">or finally: T = (h - 12.5)/3.5</font></p></blockquote>
+
+<p><font size="+1">Thus the enthalpy lines can be plotted parallel
+to, but independant of the wet bulb temperature lines.</font></p>
+
+<p><font size="+1">The complete MATLAB program follows. Note that
+it is the convention in programming that all variable names begin
+with lower case letters. Thus t represents temperature [°C],
+p represents pressure [kPa], w (in place of <img src="./MATLAB program for plotting a Simplified Psychrometric Chart (Updated 12_16_13)_files/omega.gif" width="14" height="11" align="BOTTOM" border="0" naturalsizeflag="3">)
+represents specific humidity [grams / kg dry air] (aka: absolute
+humidity, humidity ratio), h represents enthalpy (kJ/kg dry air)
+and the suffix g represents the saturated vapor state (following
+the convention used in steam tables).</font></p>
+
+<blockquote>
+  <p><table width="90%" border="1" cellspacing="2" cellpadding="0">
+    <tbody><tr>
+      <td width="100%" bgcolor="#ffffff">
+        <pre><b><font color="#ff0000" size="+1">% Plotting the Simplified Psychrometric Chart</font></b>
+<b><font color="#ff0000" size="+1">% Izzi Urieli 2/27/2008</font></b>
+<b><font color="#000000" size="+1">tpg = dlmread(</font><font color="#009900" size="+1">'t_pg'</font><font color="#000000" size="+1">,</font><font color="#009900" size="+1">'\t'</font><font color="#000000" size="+1">); </font><font color="#ff0000" size="+1">% saturation temp/pressure</font></b>
+<b><font color="#000000" size="+1">t = tpg(:,1); </font><font color="#ff0000" size="+1">% temperature (C)</font></b>
+<b><font color="#000000" size="+1">pg = tpg(:,2); </font><font color="#ff0000" size="+1">% saturation vapor pressure (kPa)</font></b>
+<b><font color="#000000" size="+1">patm = 101.325; </font><font color="#ff0000" size="+1">% standard atmosphere (kPa)</font></b>
+<b><font color="#000000" size="+1">rair = 0.287; </font><font color="#ff0000" size="+1">% gas constant of air (kJ/kg.K)</font></b>
+<b><font color="#000000" size="+1">wg = 622*pg./(patm-pg); </font><font color="#ff0000" size="+1">% saturation specific humidity</font></b>
+<b><font color="#000000" size="+1">plot(t,wg,</font><font color="#009900" size="+1">'r-'</font><font color="#000000" size="+1">)</font></b>
+<b><font color="#000000" size="+1">hold</font></b>
+<b><font color="#000000" size="+1">grid</font></b>
+<b><font color="#0000ff" size="+1">for</font><font color="#000000" size="+1"> phi = 0.1:0.1:0.4, </font><font color="#ff0000" size="+1">% phi = relative humidity 10% - 40%</font></b>
+<b><font color="#000000" size="+1">	w = 622*phi*pg./(patm-phi*pg);</font></b>
+<b><font color="#000000" size="+1">	plot(t,w)</font></b>
+<b><font color="#0000ff" size="+1">end</font></b>
+<b><font color="#0000ff" size="+1">for</font><font color="#000000" size="+1"> phi = 0.6:0.2:0.8, </font><font color="#ff0000" size="+1">% phi = 60%, 80%</font></b>
+<b><font color="#000000" size="+1">	w = 622*phi*pg./(patm-phi*pg);</font></b>
+<b><font color="#000000" size="+1">	plot(t,w)</font></b>
+<b><font color="#0000ff" size="+1">end</font></b>
+<b><font color="#ff0000" size="+1">% specific volume and enthalpy/wet-bulb-temp</font></b>
+<b><font color="#000000" size="+1">tpg1 = dlmread(</font><font color="#009900" size="+1">'t_pg1'</font><font color="#000000" size="+1">,</font><font color="#009900" size="+1">'\t'</font><font color="#000000" size="+1">);</font></b>
+<b><font color="#000000" size="+1">t1 = tpg1(:,1); </font><font color="#ff0000" size="+1">% saturation temperature (C)</font></b>
+<b><font color="#000000" size="+1">pg1 = tpg1(:,2); </font><font color="#ff0000" size="+1">% saturation pressure (kPa)</font></b>
+<b><font color="#000000" size="+1">wg1 = 622*pg1./(patm-pg1); </font><font color="#ff0000" size="+1">% saturation specific humidity</font></b>
+<b><font color="#ff0000" size="+1">% specific volume of dry air (cubic m/kg dry air) (green)</font></b>
+<b><font color="#000000" size="+1">vol = rair.*(t1+273)./(patm-pg1) </font><font color="#ff0000" size="+1">% specific vol at saturation</font></b>
+<b><font color="#000000" size="+1">tv0 = patm*vol/rair-273; </font><font color="#ff0000" size="+1">% air temperature at zero humidity</font></b>
+<b><font color="#0000ff" size="+1">for</font><font color="#000000" size="+1"> i = 1:7,</font></b>
+<b><font color="#000000" size="+1">	plot([t1(i),tv0(i)],[wg1(i),0],</font><font color="#009900" size="+1">'g-'</font><font color="#000000" size="+1">)</font></b>
+<b><font color="#0000ff" size="+1">end</font></b>
+<b><font color="#ff0000" size="+1">% wet bulb temperature (also enthalpy) lines (red)</font></b>
+<b><font color="#000000" size="+1">h = t1 + 2.5*wg1 </font><font color="#ff0000" size="+1">% enthalpy (kJ/kg-dry-air) (displayed)</font></b>
+<b><font color="#000000" size="+1">t0 = h; </font><font color="#ff0000" size="+1">% temperature at zero humidity for enthalpy h</font></b>
+<b><font color="#0000ff" size="+1">for</font><font color="#000000" size="+1"> i = 1:6,</font></b>
+<b><font color="#000000" size="+1">	plot([t1(i),t0(i)],[wg1(i),0],</font><font color="#009900" size="+1">'r-'</font><font color="#000000" size="+1">)</font></b>
+<b><font color="#0000ff" size="+1">end</font></b>
+<b><font color="#ff0000" size="+1">% enthalpy axis and enthalpy lines (black)</font></b>
+<b><font color="#0000ff" size="+1">for</font><font color="#000000" size="+1"> h = 10:10:110, </font><font color="#ff0000" size="+1">% enthalpy (kJ/kg-dry-air)</font></b>
+<b><font color="#000000" size="+1">	t0 = h; </font><font color="#ff0000" size="+1">% temperature at zero humidity</font></b>
+<b><font color="#000000" size="+1">	t1 = (h - 12.5)/3.5; </font><font color="#ff0000" size="+1">% temperature on the enthalpy axis</font></b>
+<b><font color="#000000" size="+1">	w1 = t1 + 5; </font><font color="#ff0000" size="+1">% specific humidity on the enthalpy axis</font></b>
+<b><font color="#000000" size="+1">	plot([t0,t1],[0,w1],</font><font color="#009900" size="+1">'k-'</font><font color="#000000" size="+1">)</font></b>
+<b><font color="#0000ff" size="+1">end</font></b>
+<b><font color="#000000" size="+1">plot([0,25],[5,30],</font><font color="#009900" size="+1">'k-'</font><font color="#000000" size="+1">) </font><font color="#ff0000" size="+1">% the oblique enthalpy axis</font></b>
+<b><font color="#000000" size="+1">axis([0,50,0,30]) </font><font color="#ff0000" size="+1">% limit the range of the chart</font></b>
+<b><font size="+1">title(</font><font color="#009900" size="+1">'Simplified Psychrometric Chart'</font><font size="+1">)</font></b>
+<b><font size="+1">xlabel(</font><font color="#009900" size="+1">'Dry Bulb Temperature (deg C)'</font><font size="+1">)</font></b>
+<b><font size="+1">ylabel(</font><font color="#009900" size="+1">'Specific Humidity (gm vap/kg dry air)'</font><font size="+1">)</font></b></pre>
+      </td>
+    </tr>
+  </tbody></table></p></blockquote>
+
+<p><font size="+1">Notice in the program that both the specific
+volume (vol) and the enthalpy values (h) are displayed (no semicolon)
+thus they can be subsequently added to the plot together with
+the relevant saturation/wet bulb temperatures. relative humidity
+values.and enthalpy values on the enthalpy axis.</font></p>
+
+<p>______________________________________________________________________________________</p>
+
+<p><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/us/" rel="license" target="_blank"><img src="./MATLAB program for plotting a Simplified Psychrometric Chart (Updated 12_16_13)_files/88x31.png" alt="Creative Commons License" style="border-width:0" align="BOTTOM">
+</a><br clear="ALL"><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type">
+<font size="+1">Engineering Thermodynamics</font></span><font size="+1"> by <a href="http://www.ohio.edu/mechanical/thermo" xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName" rel="cc:attributionURL" target="_blank">Israel Urieli</a> is licensed under a
+<a href="http://creativecommons.org/licenses/by-nc-sa/3.0/us/" rel="license" target="_blank">Creative Commons Attribution-Noncommercial-Share
+Alike 3.0 United States License</a></font>
+
+
+
+</p></body></html>

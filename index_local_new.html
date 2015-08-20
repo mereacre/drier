@@ -7,7 +7,7 @@
     <link href="examples.css" rel="stylesheet" type="text/css">  
     <script src="jquery-1.11.3.min.js"></script>
     <script language="javascript" type="text/javascript" src="jquery.flot.js"></script>
-
+    <script language="javascript" type="text/javascript" src="jquery.flot.navigate.js"></script>
     <script>
       "use strict";
 
@@ -70,6 +70,8 @@
       var ySMoisture9 = [];
       var yGMoisture9 = [];
 
+      var yPM = [];
+
       var currx = 0;
       var stepx = 0.1;
 
@@ -98,6 +100,9 @@
         var inputdischargetime = document.getElementById("inputdischargetime");
         var inputfinalmoisture = document.getElementById("inputfinalmoisture");
 
+        var inputdrybulb = document.getElementById("inputdrybulb");
+        var inputrelhum = document.getElementById("inputrelhum");
+
         txtreport = document.getElementById("txtreport");
         sensorplot = document.getElementById('sensorplot');
 
@@ -110,6 +115,8 @@
         inputburnertemp.value = 65;
         inputdischargetime.value = 15;
         inputfinalmoisture.value = 9;
+        inputdrybulb.value = 1;
+        inputrelhum.value = 1;
 
         socket = new WebSocket("ws://localhost:8080", "realtime-protocol");
 
@@ -246,25 +253,42 @@
             yGMoisture9 = yGMoisture9.slice(1);
             yGMoisture9.push(ComputeGMoisture(currHumidSens[8]));
 
-            sensorplot1.setData([{data: ZipData(ySensorTemp1)}, {data: ZipData(ySensorHumid1)}]);
-            sensorplot2.setData([{data: ZipData(ySensorTemp2)}, {data: ZipData(ySensorHumid2)}]);
-            sensorplot3.setData([{data: ZipData(ySensorTemp3)}, {data: ZipData(ySensorHumid3)}]);
-            sensorplot4.setData([{data: ZipData(ySensorTemp4)}, {data: ZipData(ySensorHumid4)}]);
-            sensorplot5.setData([{data: ZipData(ySensorTemp5)}, {data: ZipData(ySensorHumid5)}]);
-            sensorplot6.setData([{data: ZipData(ySensorTemp6)}, {data: ZipData(ySensorHumid6)}]);
-            sensorplot7.setData([{data: ZipData(ySensorTemp7)}, {data: ZipData(ySensorHumid7)}]);
-            sensorplot8.setData([{data: ZipData(ySensorTemp8)}, {data: ZipData(ySensorHumid8)}]);
-            sensorplot9.setData([{data: ZipData(ySensorTemp9)}, {data: ZipData(ySensorHumid9)}]);
+            sensorplot1.setData([{data: ZipData(ySensorTemp1), color: '#AA4643'}, {data: ZipData(ySensorHumid1), color: '#058DC7'}]);
+            sensorplot2.setData([{data: ZipData(ySensorTemp2), color: '#AA4643'}, {data: ZipData(ySensorHumid2), color: '#058DC7'}]);
+            sensorplot3.setData([{data: ZipData(ySensorTemp3), color: '#AA4643'}, {data: ZipData(ySensorHumid3), color: '#058DC7'}]);
+            sensorplot4.setData([{data: ZipData(ySensorTemp4), color: '#AA4643'}, {data: ZipData(ySensorHumid4), color: '#058DC7'}]);
+            sensorplot5.setData([{data: ZipData(ySensorTemp5), color: '#AA4643'}, {data: ZipData(ySensorHumid5), color: '#058DC7'}]);
+            sensorplot6.setData([{data: ZipData(ySensorTemp6), color: '#AA4643'}, {data: ZipData(ySensorHumid6), color: '#058DC7'}]);
+            sensorplot7.setData([{data: ZipData(ySensorTemp7), color: '#AA4643'}, {data: ZipData(ySensorHumid7), color: '#058DC7'}]);
+            sensorplot8.setData([{data: ZipData(ySensorTemp8), color: '#AA4643'}, {data: ZipData(ySensorHumid8), color: '#058DC7'}]);
+            sensorplot9.setData([{data: ZipData(ySensorTemp9), color: '#AA4643'}, {data: ZipData(ySensorHumid9), color: '#058DC7'}]);
 
-            moistureplot1.setData([{data: ZipData(ySMoisture1)}, {data: ZipData(yGMoisture1)}]);
-            moistureplot2.setData([{data: ZipData(ySMoisture2)}, {data: ZipData(yGMoisture2)}]);
-            moistureplot3.setData([{data: ZipData(ySMoisture3)}, {data: ZipData(yGMoisture3)}]);
-            moistureplot4.setData([{data: ZipData(ySMoisture4)}, {data: ZipData(yGMoisture4)}]);
-            moistureplot5.setData([{data: ZipData(ySMoisture5)}, {data: ZipData(yGMoisture5)}]);
-            moistureplot6.setData([{data: ZipData(ySMoisture6)}, {data: ZipData(yGMoisture6)}]);
-            moistureplot7.setData([{data: ZipData(ySMoisture7)}, {data: ZipData(yGMoisture7)}]);
-            moistureplot8.setData([{data: ZipData(ySMoisture8)}, {data: ZipData(yGMoisture8)}]);
-            moistureplot9.setData([{data: ZipData(ySMoisture9)}, {data: ZipData(yGMoisture9)}]);
+            sensorplot1.getData()[0].lines.lineWidth = 3;
+            sensorplot1.getData()[1].lines.lineWidth = 3;
+
+            sensorplot2.getData()[0].lines.lineWidth = 3;
+            sensorplot2.getData()[1].lines.lineWidth = 3;
+
+            sensorplot3.getData()[0].lines.lineWidth = 3;
+            sensorplot3.getData()[1].lines.lineWidth = 3;
+
+            sensorplot4.getData()[0].lines.lineWidth = 3;
+            sensorplot4.getData()[1].lines.lineWidth = 3;
+
+            sensorplot5.getData()[0].lines.lineWidth = 3;
+            sensorplot5.getData()[1].lines.lineWidth = 3;
+
+            sensorplot6.getData()[0].lines.lineWidth = 3;
+            sensorplot6.getData()[1].lines.lineWidth = 3;
+
+            sensorplot7.getData()[0].lines.lineWidth = 3;
+            sensorplot7.getData()[1].lines.lineWidth = 3;
+
+            sensorplot8.getData()[0].lines.lineWidth = 3;
+            sensorplot8.getData()[1].lines.lineWidth = 3;
+
+            sensorplot9.getData()[0].lines.lineWidth = 3;
+            sensorplot9.getData()[1].lines.lineWidth = 3;
 
             sensorplot1.draw();
 			sensorplot2.draw();
@@ -276,6 +300,68 @@
             sensorplot8.draw();
             sensorplot9.draw();
 
+            moistureplot1.setData([{data: ZipData(ySMoisture1), label: "Equilibrium seed moisture[1] (%)", color: '#AA4643', yaxis: 1}, {data: ZipData(yGMoisture1), label: "Equilibrium grain moisture[1] (%)", color: '#058DC7', yaxis: 2}]);
+            moistureplot2.setData([{data: ZipData(ySMoisture2), label: "Equilibrium seed moisture[2] (%)", color: '#AA4643', yaxis: 1}, {data: ZipData(yGMoisture2), label: "Equilibrium grain moisture[2] (%)", color: '#058DC7', yaxis: 2}]);
+            moistureplot3.setData([{data: ZipData(ySMoisture3), label: "Equilibrium seed moisture[3] (%)", color: '#AA4643', yaxis: 1}, {data: ZipData(yGMoisture3), label: "Equilibrium grain moisture[3] (%)", color: '#058DC7', yaxis: 2}]);
+            moistureplot4.setData([{data: ZipData(ySMoisture4), label: "Equilibrium seed moisture[4] (%)", color: '#AA4643', yaxis: 1}, {data: ZipData(yGMoisture4), label: "Equilibrium grain moisture[4] (%)", color: '#058DC7', yaxis: 2}]);
+            moistureplot5.setData([{data: ZipData(ySMoisture5), label: "Equilibrium seed moisture[5] (%)", color: '#AA4643', yaxis: 1}, {data: ZipData(yGMoisture5), label: "Equilibrium grain moisture[5] (%)", color: '#058DC7', yaxis: 2}]);
+            moistureplot6.setData([{data: ZipData(ySMoisture6), label: "Equilibrium seed moisture[6] (%)", color: '#AA4643', yaxis: 1}, {data: ZipData(yGMoisture6), label: "Equilibrium grain moisture[6] (%)", color: '#058DC7', yaxis: 2}]);
+            moistureplot7.setData([{data: ZipData(ySMoisture7), label: "Equilibrium seed moisture[7] (%)", color: '#AA4643', yaxis: 1}, {data: ZipData(yGMoisture7), label: "Equilibrium grain moisture[7] (%)", color: '#058DC7', yaxis: 2}]);
+            moistureplot8.setData([{data: ZipData(ySMoisture8), label: "Equilibrium seed moisture[8] (%)", color: '#AA4643', yaxis: 1}, {data: ZipData(yGMoisture8), label: "Equilibrium grain moisture[8] (%)", color: '#058DC7', yaxis: 2}]);
+            moistureplot9.setData([{data: ZipData(ySMoisture9), label: "Equilibrium seed moisture[9] (%)", color: '#AA4643', yaxis: 1}, {data: ZipData(yGMoisture9), label: "Equilibrium grain moisture[9] (%)", color: '#058DC7', yaxis: 2}]);
+
+            yPM = yPM.slice(1);
+            var pressure = Math.exp(20.386-(5132/(273.15+currTempSens[inputdrybulb.value-1])))/7.5;
+            var ahumid = (622*(currHumidSens[inputrelhum.value-1]/100)*pressure)/(101.325-(currHumidSens[inputrelhum.value-1]/100)*pressure);
+            yPM.push(ahumid);
+            //console.log(ahumid+":"+pressure+":"+currTempSens[inputdrybulb.value-1]+":"+currHumidSens[inputrelhum.value-1]);
+
+            pressuremoistplot.setData([{ data: ZipData(yPM), label: "Specific humidity (grams vap./kg dry air)", color: '#AA4643'}]);
+
+            moistureplot1.getData()[0].lines.lineWidth = 3;
+            moistureplot1.getData()[1].lines.lineWidth = 3;
+
+            moistureplot2.getData()[0].lines.lineWidth = 3;
+            moistureplot2.getData()[1].lines.lineWidth = 3;
+
+            moistureplot3.getData()[0].lines.lineWidth = 3;
+            moistureplot3.getData()[1].lines.lineWidth = 3;
+
+            moistureplot4.getData()[0].lines.lineWidth = 3;
+            moistureplot4.getData()[1].lines.lineWidth = 3;
+
+            moistureplot5.getData()[0].lines.lineWidth = 3;
+            moistureplot5.getData()[1].lines.lineWidth = 3;
+
+            moistureplot6.getData()[0].lines.lineWidth = 3;
+            moistureplot6.getData()[1].lines.lineWidth = 3;
+
+            moistureplot7.getData()[0].lines.lineWidth = 3;
+            moistureplot7.getData()[1].lines.lineWidth = 3;
+
+            moistureplot8.getData()[0].lines.lineWidth = 3;
+            moistureplot8.getData()[1].lines.lineWidth = 3;
+
+            moistureplot9.getData()[0].lines.lineWidth = 3;
+            moistureplot9.getData()[1].lines.lineWidth = 3;
+
+            pressuremoistplot.getData()[0].lines.lineWidth = 3;
+
+            //moistureplot1.getAxes().yaxis.options.max = ComputeSMoisture(inputgraintype.value, currHumidSens[0]);
+            //moistureplot1.getAxes().y2axis.options.max = ComputeGMoisture(currHumidSens[0]);
+
+            moistureplot1.setupGrid();
+            moistureplot2.setupGrid();
+            moistureplot3.setupGrid();
+            moistureplot4.setupGrid();
+            moistureplot5.setupGrid();
+            moistureplot6.setupGrid();
+            moistureplot7.setupGrid();
+            moistureplot8.setupGrid();
+            moistureplot9.setupGrid();
+
+            pressuremoistplot.setupGrid();
+
             moistureplot1.draw();
             moistureplot2.draw();
             moistureplot3.draw();
@@ -286,6 +372,7 @@
             moistureplot8.draw();
             moistureplot9.draw();
 
+            pressuremoistplot.draw();
           }
 
         });
@@ -434,11 +521,13 @@
 		yGMoisture8 = FillData(0,numPts);
 		yGMoisture9 = FillData(0,numPts);
 
+		yPM = FillData(0,numPts);
+
         currx = (numPts-1) * stepx;
 
         var sensorplot1 = $.plot("#sensorholder1", [
-                { data: ZipData(ySensorTemp1), label: "Temperature[1] (C)" },
-                { data: ZipData(ySensorHumid1), label: "Humidity[1] (%)", yaxis: 2 }
+                { data: ZipData(ySensorTemp1), label: "Temperature[1] (C)", color: '#AA4643'},
+                { data: ZipData(ySensorHumid1), label: "Humidity[1] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -452,12 +541,15 @@
                   max: 100,
                   alignTicksWithAxis: 0,
                   position: 'left'
+                },
+                legend: {
+                	position: "sw"
                 }
         });
 
         var sensorplot2 = $.plot("#sensorholder2", [
-                { data: ZipData(ySensorTemp2), label: "Temperature[2] (C)" },
-                { data: ZipData(ySensorHumid2), label: "Humidity[2] (%)", yaxis: 2 }
+                { data: ZipData(ySensorTemp2), label: "Temperature[2] (C)", color: '#AA4643' },
+                { data: ZipData(ySensorHumid2), label: "Humidity[2] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -471,12 +563,15 @@
                   max: 100,
                   alignTicksWithAxis: 0,
                   position: 'left'
+                },
+                legend: {
+                	position: "sw"
                 }
         });
 
         var sensorplot3 = $.plot("#sensorholder3", [
-                { data: ZipData(ySensorTemp3), label: "Temperature[3] (C)" },
-                { data: ZipData(ySensorHumid3), label: "Humidity[3] (%)", yaxis: 2 }
+                { data: ZipData(ySensorTemp3), label: "Temperature[3] (C)", color: '#AA4643' },
+                { data: ZipData(ySensorHumid3), label: "Humidity[3] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -490,12 +585,15 @@
                   max: 100,
                   alignTicksWithAxis: 0,
                   position: 'left'
+                },
+                legend: {
+                	position: "sw"
                 }
         });
 
         var sensorplot4 = $.plot("#sensorholder4", [
-                { data: ZipData(ySensorTemp4), label: "Temperature[4] (C)" },
-                { data: ZipData(ySensorHumid4), label: "Humidity[4] (%)", yaxis: 2 }
+                { data: ZipData(ySensorTemp4), label: "Temperature[4] (C)", color: '#AA4643' },
+                { data: ZipData(ySensorHumid4), label: "Humidity[4] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -509,12 +607,15 @@
                   max: 100,
                   alignTicksWithAxis: 0,
                   position: 'left'
+                },
+                legend: {
+                	position: "sw"
                 }
         });
 
         var sensorplot5 = $.plot("#sensorholder5", [
-                { data: ZipData(ySensorTemp5), label: "Temperature[5] (C)" },
-                { data: ZipData(ySensorHumid5), label: "Humidity[5] (%)", yaxis: 2 }
+                { data: ZipData(ySensorTemp5), label: "Temperature[5] (C)", color: '#AA4643' },
+                { data: ZipData(ySensorHumid5), label: "Humidity[5] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -528,12 +629,15 @@
                   max: 100,
                   alignTicksWithAxis: 0,
                   position: 'left'
+                },
+                legend: {
+                	position: "sw"
                 }
         });
 
         var sensorplot6 = $.plot("#sensorholder6", [
-                { data: ZipData(ySensorTemp6), label: "Temperature[6] (C)" },
-                { data: ZipData(ySensorHumid6), label: "Humidity[6] (%)", yaxis: 2 }
+                { data: ZipData(ySensorTemp6), label: "Temperature[6] (C)", color: '#AA4643' },
+                { data: ZipData(ySensorHumid6), label: "Humidity[6] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -547,12 +651,15 @@
                   max: 100,
                   alignTicksWithAxis: 0,
                   position: 'left'
+                },
+                legend: {
+                	position: "sw"
                 }
         });
 
         var sensorplot7 = $.plot("#sensorholder7", [
-                { data: ZipData(ySensorTemp7), label: "Temperature[7] (C)" },
-                { data: ZipData(ySensorHumid7), label: "Humidity[7] (%)", yaxis: 2 }
+                { data: ZipData(ySensorTemp7), label: "Temperature[7] (C)", color: '#AA4643' },
+                { data: ZipData(ySensorHumid7), label: "Humidity[7] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -566,12 +673,15 @@
                   max: 100,
                   alignTicksWithAxis: 0,
                   position: 'left'
+                },
+                legend: {
+                	position: "sw"
                 }
         });
 
         var sensorplot8 = $.plot("#sensorholder8", [
-                { data: ZipData(ySensorTemp8), label: "Temperature[8] (C)" },
-                { data: ZipData(ySensorHumid8), label: "Humidity[8] (%)", yaxis: 2 }
+                { data: ZipData(ySensorTemp8), label: "Temperature[8] (C)", color: '#AA4643' },
+                { data: ZipData(ySensorHumid8), label: "Humidity[8] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -585,12 +695,15 @@
                   max: 100,
                   alignTicksWithAxis: 0,
                   position: 'left'
+                },
+                legend: {
+                	position: "sw"
                 }
         });
 
         var sensorplot9 = $.plot("#sensorholder9", [
-                { data: ZipData(ySensorTemp9), label: "Temperature[9] (C)" },
-                { data: ZipData(ySensorHumid9), label: "Humidity[9] (%)", yaxis: 2 }
+                { data: ZipData(ySensorTemp9), label: "Temperature[9] (C)", color: '#AA4643' },
+                { data: ZipData(ySensorHumid9), label: "Humidity[9] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -604,31 +717,39 @@
                   max: 100,
                   alignTicksWithAxis: 0,
                   position: 'left'
+                },
+                legend: {
+                	position: "sw"
                 }
         });
 
         var moistureplot1 = $.plot("#moistureholder1", [
-                { data: ZipData(ySMoisture1), label: "Equilibrium seed moisture[1] (%)" },
-                { data: ZipData(yGMoisture1), label: "Equilibrium grain moisture[1] (%)", yaxis: 2 }
-        ], {
+                { data: ZipData(ySMoisture1), label: "Equilibrium seed moisture[1] (%)", color: '#AA4643', yaxis: 1 },
+                { data: ZipData(yGMoisture1), label: "Equilibrium grain moisture[1] (%)", color: '#058DC7', yaxis: 2 }
+        		], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
                 },
                 xaxis: {
                   show: true,
-                  position: "bottom"
+                  position: "bottom"//,	
+                  //panRange: [0, 10000]
                 },                
-                yaxis: {
-                  min: 5,
-                  max: 25,
-                  alignTicksWithAxis: 0,
-                  position: 'left'
-                }
-        });
+                yaxis: [
+                { min: 5, max: 25, alignTicksWithAxis: 0, position: 'left'},{
+                  min: 7, max: 20, alignTicksWithAxis: 0, position: 'right'}
+                ],
+                legend: {
+                	position: "sw"
+                }//,
+				//pan: {
+				//	interactive: true
+				//}                
+    	});
 
         var moistureplot2 = $.plot("#moistureholder2", [
-                { data: ZipData(ySMoisture2), label: "Equilibrium seed moisture[2] (%)" },
-                { data: ZipData(yGMoisture2), label: "Equilibrium grain moisture[2] (%)", yaxis: 2 }
+                { data: ZipData(ySMoisture2), label: "Equilibrium seed moisture[2] (%)", color: '#AA4643', yaxis: 1 },
+                { data: ZipData(yGMoisture2), label: "Equilibrium grain moisture[2] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -637,17 +758,18 @@
                   show: true,
                   position: "bottom"
                 },                
-                yaxis: {
-                  min: 5,
-                  max: 25,
-                  alignTicksWithAxis: 0,
-                  position: 'left'
+                yaxis: [
+                { min: 5, max: 25, alignTicksWithAxis: 0, position: 'left'},{
+                  min: 7, max: 20, alignTicksWithAxis: 0, position: 'right'}
+                ],
+                legend: {
+                	position: "sw"
                 }
         });
 
         var moistureplot3 = $.plot("#moistureholder3", [
-                { data: ZipData(ySMoisture3), label: "Equilibrium seed moisture[3] (%)" },
-                { data: ZipData(yGMoisture3), label: "Equilibrium grain moisture[3] (%)", yaxis: 2 }
+                { data: ZipData(ySMoisture3), label: "Equilibrium seed moisture[3] (%)", color: '#AA4643', yaxis: 1 },
+                { data: ZipData(yGMoisture3), label: "Equilibrium grain moisture[3] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -656,17 +778,18 @@
                   show: true,
                   position: "bottom"
                 },                
-                yaxis: {
-                  min: 5,
-                  max: 25,
-                  alignTicksWithAxis: 0,
-                  position: 'left'
+                yaxis: [
+                { min: 5, max: 25, alignTicksWithAxis: 0, position: 'left'},{
+                  min: 7, max: 20, alignTicksWithAxis: 0, position: 'right'}
+                ],
+                legend: {
+                	position: "sw"
                 }
         });
 
         var moistureplot4 = $.plot("#moistureholder4", [
-                { data: ZipData(ySMoisture4), label: "Equilibrium seed moisture[4] (%)" },
-                { data: ZipData(yGMoisture4), label: "Equilibrium grain moisture[4] (%)", yaxis: 2 }
+                { data: ZipData(ySMoisture4), label: "Equilibrium seed moisture[4] (%)", color: '#AA4643', yaxis: 1 },
+                { data: ZipData(yGMoisture4), label: "Equilibrium grain moisture[4] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -675,17 +798,18 @@
                   show: true,
                   position: "bottom"
                 },                
-                yaxis: {
-                  min: 5,
-                  max: 25,
-                  alignTicksWithAxis: 0,
-                  position: 'left'
+                yaxis: [
+                { min: 5, max: 25, alignTicksWithAxis: 0, position: 'left'},{
+                  min: 7, max: 20, alignTicksWithAxis: 0, position: 'right'}
+                ],
+                legend: {
+                	position: "sw"
                 }
         });
 
         var moistureplot5 = $.plot("#moistureholder5", [
-                { data: ZipData(ySMoisture5), label: "Equilibrium seed moisture[5] (%)" },
-                { data: ZipData(yGMoisture5), label: "Equilibrium grain moisture[5] (%)", yaxis: 2 }
+                { data: ZipData(ySMoisture5), label: "Equilibrium seed moisture[5] (%)", color: '#AA4643', yaxis: 1 },
+                { data: ZipData(yGMoisture5), label: "Equilibrium grain moisture[5] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -694,17 +818,18 @@
                   show: true,
                   position: "bottom"
                 },                
-                yaxis: {
-                  min: 5,
-                  max: 25,
-                  alignTicksWithAxis: 0,
-                  position: 'left'
+                yaxis: [
+                { min: 5, max: 25, alignTicksWithAxis: 0, position: 'left'},{
+                  min: 7, max: 20, alignTicksWithAxis: 0, position: 'right'}
+                ],
+                legend: {
+                	position: "sw"
                 }
         });
 
         var moistureplot6 = $.plot("#moistureholder6", [
-                { data: ZipData(ySMoisture6), label: "Equilibrium seed moisture[6] (%)" },
-                { data: ZipData(yGMoisture6), label: "Equilibrium grain moisture[6] (%)", yaxis: 2 }
+                { data: ZipData(ySMoisture6), label: "Equilibrium seed moisture[6] (%)", color: '#AA4643', yaxis: 1 },
+                { data: ZipData(yGMoisture6), label: "Equilibrium grain moisture[6] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -713,17 +838,18 @@
                   show: true,
                   position: "bottom"
                 },                
-                yaxis: {
-                  min: 5,
-                  max: 25,
-                  alignTicksWithAxis: 0,
-                  position: 'left'
+                yaxis: [
+                { min: 5, max: 25, alignTicksWithAxis: 0, position: 'left'},{
+                  min: 7, max: 20, alignTicksWithAxis: 0, position: 'right'}
+                ],
+                legend: {
+                	position: "sw"
                 }
         });
 
         var moistureplot7 = $.plot("#moistureholder7", [
-                { data: ZipData(ySMoisture7), label: "Equilibrium seed moisture[7] (%)" },
-                { data: ZipData(yGMoisture7), label: "Equilibrium grain moisture[7] (%)", yaxis: 2 }
+                { data: ZipData(ySMoisture7), label: "Equilibrium seed moisture[7] (%)", color: '#AA4643', yaxis: 1 },
+                { data: ZipData(yGMoisture7), label: "Equilibrium grain moisture[7] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -732,17 +858,18 @@
                   show: true,
                   position: "bottom"
                 },                
-                yaxis: {
-                  min: 5,
-                  max: 25,
-                  alignTicksWithAxis: 0,
-                  position: 'left'
+                yaxis: [
+                { min: 5, max: 25, alignTicksWithAxis: 0, position: 'left'},{
+                  min: 7, max: 20, alignTicksWithAxis: 0, position: 'right'}
+                ],
+                legend: {
+                	position: "sw"
                 }
         });
 
         var moistureplot8 = $.plot("#moistureholder8", [
-                { data: ZipData(ySMoisture8), label: "Equilibrium seed moisture[8] (%)" },
-                { data: ZipData(yGMoisture8), label: "Equilibrium grain moisture[8] (%)", yaxis: 2 }
+                { data: ZipData(ySMoisture8), label: "Equilibrium seed moisture[8] (%)", color: '#AA4643', yaxis: 1 },
+                { data: ZipData(yGMoisture8), label: "Equilibrium grain moisture[8] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -751,17 +878,18 @@
                   show: true,
                   position: "bottom"
                 },                
-                yaxis: {
-                  min: 5,
-                  max: 25,
-                  alignTicksWithAxis: 0,
-                  position: 'left'
+                yaxis: [
+                { min: 5, max: 25, alignTicksWithAxis: 0, position: 'left'},{
+                  min: 7, max: 20, alignTicksWithAxis: 0, position: 'right'}
+                ],
+                legend: {
+                	position: "sw"
                 }
         });
 
         var moistureplot9 = $.plot("#moistureholder9", [
-                { data: ZipData(ySMoisture9), label: "Equilibrium seed moisture[9] (%)" },
-                { data: ZipData(yGMoisture9), label: "Equilibrium grain moisture[9] (%)", yaxis: 2 }
+                { data: ZipData(ySMoisture9), label: "Equilibrium seed moisture[9] (%)", color: '#AA4643', yaxis: 1 },
+                { data: ZipData(yGMoisture9), label: "Equilibrium grain moisture[9] (%)", color: '#058DC7', yaxis: 2 }
         ], {
                 series: {
                   shadowSize: 0 // Drawing is faster without shadows
@@ -770,11 +898,28 @@
                   show: true,
                   position: "bottom"
                 },                
-                yaxis: {
-                  min: 5,
-                  max: 25,
-                  alignTicksWithAxis: 0,
-                  position: 'left'
+                yaxis: [
+                { min: 5, max: 25, alignTicksWithAxis: 0, position: 'left'},{
+                  min: 7, max: 20, alignTicksWithAxis: 0, position: 'right'}
+                ],
+                legend: {
+                	position: "sw"
+                }
+        });
+
+        var pressuremoistplot = $.plot("#pressuremoistholder", [
+                { data: ZipData(yPM), label: "Specific humidity (grams vap./kg dry air)", color: '#AA4643'}
+        ], {
+                series: {
+                  shadowSize: 0 // Drawing is faster without shadows
+                },
+                xaxis: {
+                  show: true,
+                  position: "bottom"
+                },                
+                yaxis: { min: 0, max: 1000, alignTicksWithAxis: 0, position: 'left'},
+                legend: {
+                	position: "sw"
                 }
         });
 
@@ -1007,10 +1152,23 @@
         <label for="inputfinalmoisture">Final Moisture Content</label>
         <input type="number" class="form-control" id="inputfinalmoisture" placeholder="7.1">
 
+        <label for="inputfinalmoisture">Dry Bulb sensor ID</label>
+        <input type="number" class="form-control" id="inputdrybulb" placeholder="1">
+
+        <label for="inputfinalmoisture">Relative Humidity sensor ID</label>
+        <input type="number" class="form-control" id="inputrelhum" placeholder="1">
+
       </div>
       <div class="col-md-6">
-        <textarea class="form-control" id="txtreport" rows="28" readonly></textarea>
+        <textarea class="form-control" id="txtreport" rows="34" readonly></textarea>
       </div>
+      <div class="col-md-12">
+      </div>
+      <div class="col-md-12">
+        <div class="demo-container">
+          <div id="pressuremoistholder" class="demo-placeholder"></div>
+        </div>      
+      </div>      
       <div class="col-md-12">
       </div>
       <div class="col-md-6">
